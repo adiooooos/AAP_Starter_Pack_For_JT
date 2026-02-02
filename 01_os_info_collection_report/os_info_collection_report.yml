@@ -1,0 +1,204 @@
+# ============================================================================
+# Playbook: OS Information Collection and Report Generation
+# ============================================================================
+#
+# Description:
+#   This playbook collects comprehensive system information from RHEL/CentOS
+#   hosts and generates HTML reports for each target host. The reports are
+#   centrally stored on the Ansible control node for easy access and sharing.
+#
+# Purpose:
+#   - Rapid audit and review of system configurations across multiple hosts
+#   - Generate formatted reports for documentation, compliance, and troubleshooting
+#   - Enable quick system inventory and configuration validation
+#
+# Features:
+#   - Supports RHEL 7/8/9 and CentOS 7/8/9
+#   - Uses Ansible built-in facts (no additional commands required on targets)
+#   - Generates individual HTML reports per host on the control node
+#   - Customizable report templates using Jinja2
+#   - Robust error handling and OS compatibility validation
+#
+# Usage:
+#   1. Save the Jinja2 template file (os_info_report_template.j2) in the same
+#      directory as this playbook
+#   2. Define your target hosts in an inventory file
+#   3. Execute: ansible-playbook os_info_collection_report.yml -i inventory
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+- name: Generate OS Information Collection Report for RHEL/CentOS Systems
+  hosts: all
+  become: false
+  gather_facts: true
+  
+  vars:
+    report_title: "System Information Report"
+    report_output_dir: "/tmp"
+    supported_distributions:
+      - "RedHat"
+      - "CentOS"
+    supported_major_versions:
+      - "7"
+      - "8"
+      - "9"
+
+  tasks:
+    # ========================================================================
+    # OS Compatibility Validation
+    # ========================================================================
+    - name: Validate OS compatibility
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in supported_distributions
+          - ansible_distribution_major_version in supported_major_versions
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS. Supported: RHEL/CentOS 7/8/9"
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags:
+        - validation
+        - always
+
+    - name: Display OS information for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Distribution: {{ ansible_distribution }}"
+          - "Version: {{ ansible_distribution_version }}"
+          - "Major Version: {{ ansible_distribution_major_version }}"
+          - "Architecture: {{ ansible_architecture }}"
+      tags:
+        - validation
+        - debug
+
+    # ========================================================================
+    # Input Parameter Validation
+    # ========================================================================
+    - name: Validate report output directory path
+      ansible.builtin.assert:
+        that:
+          - report_output_dir is defined
+          - report_output_dir | length > 0
+        fail_msg: "report_output_dir variable must be defined and non-empty"
+        success_msg: "Report output directory validated: {{ report_output_dir }}"
+      delegate_to: localhost
+      run_once: true
+      tags:
+        - validation
+        - always
+
+    - name: Check if report output directory exists on control node
+      ansible.builtin.stat:
+        path: "{{ report_output_dir }}"
+      delegate_to: localhost
+      run_once: true
+      register: report_dir_stat
+      tags:
+        - validation
+        - always
+
+    - name: Create report output directory if it does not exist
+      ansible.builtin.file:
+        path: "{{ report_output_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+      when: not report_dir_stat.stat.exists | default(false)
+      register: report_dir_creation
+      tags:
+        - validation
+        - always
+
+    - name: Re-check report output directory status after creation attempt
+      ansible.builtin.stat:
+        path: "{{ report_output_dir }}"
+      delegate_to: localhost
+      run_once: true
+      register: report_dir_final_stat
+      tags:
+        - validation
+        - always
+
+    - name: Verify report output directory exists and is a directory
+      ansible.builtin.assert:
+        that:
+          - report_dir_final_stat.stat.exists | default(false)
+          - report_dir_final_stat.stat.isdir | default(false)
+        fail_msg: "Report output directory does not exist or is not a directory: {{ report_output_dir }}"
+        success_msg: "Report output directory verified: {{ report_output_dir }}"
+      delegate_to: localhost
+      run_once: true
+      tags:
+        - validation
+        - always
+
+    - name: Display validated parameters for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Report Title: {{ report_title }}"
+          - "Output Directory: {{ report_output_dir }}"
+          - "Template File: os_info_report_template.j2"
+      delegate_to: localhost
+      tags:
+        - validation
+        - debug
+
+    # ========================================================================
+    # System Information Collection and Report Generation
+    # ========================================================================
+    - name: Generate HTML report for {{ inventory_hostname }}
+      block:
+        - name: Generate HTML report using Jinja2 template
+          ansible.builtin.template:
+            src: "os_info_report_template.j2"
+            dest: "{{ report_output_dir }}/{{ inventory_hostname }}_report.html"
+            mode: '0644'
+            backup: false
+          delegate_to: localhost
+          register: report_generation_result
+
+        - name: Display report generation success message
+          ansible.builtin.debug:
+            msg: "Report successfully generated: {{ report_output_dir }}/{{ inventory_hostname }}_report.html"
+          delegate_to: localhost
+          when: report_generation_result.changed | default(false)
+
+      rescue:
+        - name: Handle report generation failure
+          ansible.builtin.fail:
+            msg: "Failed to generate report for {{ inventory_hostname }}. Error: {{ ansible_failed_result.msg | default('Unknown error') }}"
+          delegate_to: localhost
+
+      always:
+        - name: Display report file status
+          ansible.builtin.stat:
+            path: "{{ report_output_dir }}/{{ inventory_hostname }}_report.html"
+          delegate_to: localhost
+          register: report_file_stat
+
+        - name: Verify report file was created
+          ansible.builtin.debug:
+            msg:
+              - "Report file exists: {{ report_file_stat.stat.exists | default(false) }}"
+              - "Report file size: {{ report_file_stat.stat.size | default(0) }} bytes"
+              - "Report file path: {{ report_output_dir }}/{{ inventory_hostname }}_report.html"
+          delegate_to: localhost
+          when: report_file_stat.stat.exists | default(false)
+
+    # ========================================================================
+    # Summary and Completion
+    # ========================================================================
+    - name: Display completion summary
+      ansible.builtin.debug:
+        msg: "OS information collection and report generation completed for {{ inventory_hostname }}"
+      delegate_to: localhost
+      tags:
+        - summary
+        - always
+
