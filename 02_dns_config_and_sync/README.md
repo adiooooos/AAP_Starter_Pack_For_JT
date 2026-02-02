@@ -4,6 +4,43 @@
 
 This playbook automates the synchronization of DNS configuration files (`/etc/resolv.conf`) from the Ansible control node to multiple target hosts across the network. It provides automatic backup, content validation, and rollback capabilities to ensure safe and reliable DNS configuration management.
 
+```yaml
+...
+
+TASK [Verify DNS configuration was not changed (idempotency check)] ***************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "ℹ️  No file changes detected. Possible reasons: file content is identical, file has not changed"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "ℹ️  No file changes detected. Possible reasons: file content is identical, file has not changed"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "ℹ️  No file changes detected. Possible reasons: file content is identical, file has not changed"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "ℹ️  No file changes detected. Possible reasons: file content is identical, file has not changed"
+}
+skipping: [ansible25.example.com]
+
+TASK [Display completion summary] *************************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "DNS configuration synchronization completed for Test-RHEL-7.9-1"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "DNS configuration synchronization completed for Test-RHEL-7.9-2"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "DNS configuration synchronization completed for Test-RHEL-7.9-3"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "DNS configuration synchronization completed for TEST-RHEL-8.9-1"
+}
+ok: [ansible25.example.com] => {
+    "msg": "DNS configuration synchronization completed for ansible25.example.com"
+}
+...
+```
+
 ## Features
 
 - **OS Compatibility**: Supports RHEL 7/8/9 and CentOS 7/8/9
