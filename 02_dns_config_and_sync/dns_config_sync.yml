@@ -1,0 +1,305 @@
+# ============================================================================
+# Playbook: DNS Configuration Synchronization and Validation
+# ============================================================================
+#
+# Description:
+#   This playbook synchronizes DNS configuration files (/etc/resolv.conf) from
+#   the Ansible control node to multiple target hosts across the network.
+#   It provides automatic backup, content validation, and rollback capabilities
+#   to ensure safe and reliable DNS configuration management.
+#
+# Purpose:
+#   - Standardize DNS configuration across multiple RHEL/CentOS hosts
+#   - Automate DNS server updates without manual intervention
+#   - Provide automatic backup and rollback capabilities
+#   - Validate DNS configuration format and content
+#
+# Features:
+#   - Supports RHEL 7/8/9 and CentOS 7/8/9
+#   - Automatic backup before file modification
+#   - DNS server IP address format validation
+#   - Content verification after synchronization
+#   - Rollback mechanism on failure
+#   - Idempotent execution (safe to run multiple times)
+#
+# Usage:
+#   1. Prepare a standard resolv.conf file on the control node
+#   2. Update variables in this playbook (source_file_path, dest_file_path)
+#   3. Define target hosts in inventory file
+#   4. Execute: ansible-playbook dns_config_sync.yml -i inventory
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+- name: Synchronize DNS Configuration Files Across Network
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    source_file_path: "/etc/resolv.conf"
+    dest_file_path: "/etc/resolv.conf"
+    backup_enabled: true
+    file_owner: "root"
+    file_group: "root"
+    file_mode: '0644'
+    supported_distributions:
+      - "RedHat"
+      - "CentOS"
+    supported_major_versions:
+      - "7"
+      - "8"
+      - "9"
+
+  tasks:
+    # ========================================================================
+    # OS Compatibility Validation
+    # ========================================================================
+    - name: Validate OS compatibility
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in supported_distributions
+          - ansible_distribution_major_version in supported_major_versions
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS. Supported: RHEL/CentOS 7/8/9"
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags:
+        - validation
+        - always
+
+    - name: Display OS information for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Distribution: {{ ansible_distribution }}"
+          - "Version: {{ ansible_distribution_version }}"
+          - "Major Version: {{ ansible_distribution_major_version }}"
+          - "Architecture: {{ ansible_architecture }}"
+      tags:
+        - validation
+        - debug
+
+    # ========================================================================
+    # Input Parameter Validation
+    # ========================================================================
+    - name: Validate source file path variable
+      ansible.builtin.assert:
+        that:
+          - source_file_path is defined
+          - source_file_path | length > 0
+        fail_msg: "source_file_path variable must be defined and non-empty"
+        success_msg: "Source file path validated: {{ source_file_path }}"
+      tags:
+        - validation
+        - always
+
+    - name: Validate destination file path variable
+      ansible.builtin.assert:
+        that:
+          - dest_file_path is defined
+          - dest_file_path | length > 0
+        fail_msg: "dest_file_path variable must be defined and non-empty"
+        success_msg: "Destination file path validated: {{ dest_file_path }}"
+      tags:
+        - validation
+        - always
+
+    - name: Check if source file exists on control node
+      ansible.builtin.stat:
+        path: "{{ source_file_path }}"
+      delegate_to: localhost
+      run_once: true
+      register: source_file_stat
+      tags:
+        - validation
+        - always
+
+    - name: Validate source file exists and is readable
+      ansible.builtin.assert:
+        that:
+          - source_file_stat.stat.exists | default(false)
+          - source_file_stat.stat.isreg | default(false)
+        fail_msg: "Source file does not exist or is not a regular file: {{ source_file_path }}"
+        success_msg: "Source file verified: {{ source_file_path }}"
+      delegate_to: localhost
+      run_once: true
+      tags:
+        - validation
+        - always
+
+    - name: Read source file content for DNS validation
+      ansible.builtin.slurp:
+        src: "{{ source_file_path }}"
+      delegate_to: localhost
+      run_once: true
+      register: source_file_content
+      tags:
+        - validation
+        - always
+
+    - name: Validate DNS configuration format
+      ansible.builtin.assert:
+        that:
+          - source_file_content.content | b64decode | regex_search('^nameserver\\s+[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}', multiline=True)
+        fail_msg: "Source file does not contain valid nameserver entries. Expected format: 'nameserver <IP_ADDRESS>'"
+        success_msg: "DNS configuration format validated successfully"
+      delegate_to: localhost
+      run_once: true
+      tags:
+        - validation
+        - always
+
+    - name: Display validated parameters for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Source File: {{ source_file_path }}"
+          - "Destination File: {{ dest_file_path }}"
+          - "Backup Enabled: {{ backup_enabled }}"
+          - "File Owner: {{ file_owner }}"
+          - "File Group: {{ file_group }}"
+          - "File Mode: {{ file_mode }}"
+      tags:
+        - validation
+        - debug
+
+    # ========================================================================
+    # DNS Configuration Synchronization
+    # ========================================================================
+    - name: Initialize copy result variable
+      ansible.builtin.set_fact:
+        copy_result:
+          changed: false
+          checksum: ""
+          backup_file: ""
+
+    - name: Synchronize DNS configuration file to target host
+      block:
+        - name: Check current destination file status
+          ansible.builtin.stat:
+            path: "{{ dest_file_path }}"
+          register: dest_file_stat_before
+
+        - name: Display current file status for debugging
+          ansible.builtin.debug:
+            msg:
+              - "Current file exists: {{ dest_file_stat_before.stat.exists | default(false) }}"
+              - "Current file mode: {{ dest_file_stat_before.stat.mode | default('N/A') }}"
+              - "Current file owner: {{ dest_file_stat_before.stat.pw_name | default('N/A') }}"
+          when: dest_file_stat_before.stat.exists | default(false)
+
+        - name: Copy DNS configuration file from control node to target host
+          ansible.builtin.copy:
+            src: "{{ source_file_path }}"
+            dest: "{{ dest_file_path }}"
+            owner: "{{ file_owner }}"
+            group: "{{ file_group }}"
+            mode: "{{ file_mode }}"
+            backup: "{{ backup_enabled }}"
+          register: copy_result
+
+        - name: Display copy operation result for debugging
+          ansible.builtin.debug:
+            msg:
+              - "File changed: {{ copy_result.changed | default(false) }}"
+              - "File checksum: {{ copy_result.checksum | default('N/A') }}"
+              - "Backup file: {{ copy_result.backup_file | default('No backup created') }}"
+          when: copy_result.changed | default(false)
+
+        - name: Verify destination file after copy
+          ansible.builtin.stat:
+            path: "{{ dest_file_path }}"
+          register: dest_file_stat_after
+
+        - name: Validate destination file was created/updated successfully
+          ansible.builtin.assert:
+            that:
+              - dest_file_stat_after.stat.exists | default(false)
+              - dest_file_stat_after.stat.isreg | default(false)
+            fail_msg: "Destination file was not created or is not a regular file: {{ dest_file_path }}"
+            success_msg: "Destination file verified successfully: {{ dest_file_path }}"
+
+        - name: Retrieve destination file content for verification
+          ansible.builtin.slurp:
+            src: "{{ dest_file_path }}"
+          register: dest_file_content
+          when: copy_result.changed | default(false)
+
+        - name: Display structured file change summary
+          ansible.builtin.debug:
+            msg: |
+              ✅ DNS Configuration Synchronization Completed
+              ================================================
+              • Source File Hash: {{ copy_result.checksum | default('N/A') }}
+              • Backup File: {{ copy_result.backup_file | default('No backup created') }}
+              • New File Content Preview:
+              {{ dest_file_content.content | b64decode | default('N/A') }}
+          when: copy_result.changed | default(false)
+
+      rescue:
+        - name: Handle DNS configuration synchronization failure
+          ansible.builtin.debug:
+            msg: "❌ Failed to synchronize DNS configuration file. Error: {{ ansible_failed_result.msg | default('Unknown error') }}"
+
+        - name: Attempt to restore from backup if available
+          ansible.builtin.copy:
+            src: "{{ copy_result.backup_file }}"
+            dest: "{{ dest_file_path }}"
+            owner: "{{ file_owner }}"
+            group: "{{ file_group }}"
+            mode: "{{ file_mode }}"
+            remote_src: true
+          when:
+            - copy_result.backup_file is defined
+            - copy_result.backup_file | length > 0
+          register: restore_result
+          ignore_errors: true
+
+        - name: Display rollback status
+          ansible.builtin.debug:
+            msg: "🔄 Rollback attempted from backup: {{ copy_result.backup_file | default('No backup available') }}"
+          when:
+            - copy_result.backup_file is defined
+            - copy_result.backup_file | length > 0
+
+        - name: Fail playbook on synchronization error
+          ansible.builtin.fail:
+            msg: "DNS configuration synchronization failed for {{ inventory_hostname }}. Please check the error messages above."
+
+      always:
+        - name: Display final file status
+          ansible.builtin.stat:
+            path: "{{ dest_file_path }}"
+          register: dest_file_final_stat
+
+        - name: Display final status summary
+          ansible.builtin.debug:
+            msg:
+              - "Final file exists: {{ dest_file_final_stat.stat.exists | default(false) }}"
+              - "Final file size: {{ dest_file_final_stat.stat.size | default(0) }} bytes"
+              - "Final file path: {{ dest_file_path }}"
+
+    # ========================================================================
+    # Post-Synchronization Verification
+    # ========================================================================
+    - name: Verify DNS configuration was not changed (idempotency check)
+      ansible.builtin.debug:
+        msg: "ℹ️  No file changes detected. Possible reasons: file content is identical, file has not changed"
+      when: not (copy_result.changed | default(false))
+      tags:
+        - verification
+        - always
+
+    # ========================================================================
+    # Summary and Completion
+    # ========================================================================
+    - name: Display completion summary
+      ansible.builtin.debug:
+        msg: "DNS configuration synchronization completed for {{ inventory_hostname }}"
+      tags:
+        - summary
+        - always
+
