@@ -1,0 +1,41 @@
+# ============================================================================
+# Role Default Variables: Service Check Role
+# ============================================================================
+#
+# Description:
+#   Default variables for the service_check role. These variables define
+#   which services to check and where to store reports.
+#
+# Customization:
+#   Modify the critical_services_list to add or remove services you want
+#   to check. Ensure service names are correct (without .service suffix).
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+# List of critical services to check
+# Add or remove services as needed. Service names should be without .service suffix
+critical_services_list:
+  - sshd
+  - firewalld
+  - chronyd
+  - tuned
+  - NetworkManager
+  - rsyslog
+  - auditd
+  - crond
+  - dbus
+  - systemd-journald
+
+# Base path for report storage on remote hosts
+report_base_path: "/tmp"
+
+# Destination path on control node for collected reports
+collection_dest_path: "/tmp"
+
