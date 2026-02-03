@@ -1,0 +1,619 @@
+# ============================================================================
+# Task File: YUM Repository Server Deployment Tasks (Red Hat Best Practice)
+# ============================================================================
+#
+# Description:
+#   This task file contains all tasks required to set up a YUM repository
+#   server, including package verification, ISO mounting, file synchronization,
+#   and service configuration. This implementation follows Red Hat's official
+#   best practices.
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# ============================================================================
+
+---
+# ========================================================================
+# Gather Package Facts
+# ========================================================================
+# Collect information about installed packages to verify prerequisites
+- name: Gathering the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+  tags:
+    - precheck
+    - always
+
+- name: Display package facts status for debugging
+  ansible.builtin.debug:
+    msg: "Package facts gathered successfully"
+  tags:
+    - precheck
+    - debug
+
+# ========================================================================
+# Verify Prerequisites
+# ========================================================================
+# Check if required service packages are installed based on the protocol
+- name: Verify httpd existing
+  ansible.builtin.debug:
+    msg: "Failure the task when httpd package not installed (with protocol = http(s)), please install httpd and re-run the playbook."
+  failed_when:
+    - protocol == 'http' or protocol == 'https'
+    - "'httpd' not in ansible_facts.packages"
+  tags:
+    - precheck
+    - always
+
+- name: Verify vsftpd existing
+  ansible.builtin.debug:
+    msg: "Failure the task when vsftpd package not installed (with protocol = ftp), please install vsftpd and re-run the playbook."
+  failed_when:
+    - protocol == 'ftp'
+    - "'vsftpd' not in ansible_facts.packages"
+  tags:
+    - precheck
+    - always
+
+- name: Display prerequisite verification result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Protocol: {{ protocol }}"
+      - "HTTPD installed: {{ 'httpd' in ansible_facts.packages | default(false) }}"
+      - "VSFTPD installed: {{ 'vsftpd' in ansible_facts.packages | default(false) }}"
+  tags:
+    - precheck
+    - debug
+
+# ========================================================================
+# Create Required Directories
+# ========================================================================
+# Ensure document root and mount path directories exist
+- name: Make sure document root existing
+  ansible.builtin.file:
+    path: "{{ documentRoot }}"
+    state: directory
+  tags:
+    - setup
+    - always
+
+- name: Display document root status for debugging
+  ansible.builtin.debug:
+    msg: "Document root directory: {{ documentRoot }}"
+  tags:
+    - setup
+    - debug
+
+- name: Make sure mountPath existing
+  ansible.builtin.file:
+    path: "{{ mountPath }}"
+    state: directory
+  tags:
+    - setup
+    - always
+
+- name: Display mount path status for debugging
+  ansible.builtin.debug:
+    msg: "Mount path directory: {{ mountPath }}"
+  tags:
+    - setup
+    - debug
+
+# ========================================================================
+# Mount ISO Image
+# ========================================================================
+# Mount the ISO image read-only to access repository files
+- name: Mount ISO read-only
+  ansible.posix.mount:
+    path: "{{ mountPath }}"
+    src: "{{ isoPath }}"
+    fstype: iso9660
+    opts: ro
+    state: mounted
+  when: source == 'iso'
+  register: mount_result
+  tags:
+    - mount
+    - always
+
+- name: Display mount result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "ISO mounted: {{ mount_result.changed | default(false) }}"
+      - "Mount point: {{ mountPath }}"
+      - "ISO source: {{ isoPath }}"
+  when: source == 'iso'
+  tags:
+    - mount
+    - debug
+
+# ========================================================================
+# Create Repository Directory Structure
+# ========================================================================
+# Create the subdirectory structure under the document root for the repository
+- name: Create subfolder under {{ protocol }} root path
+  ansible.builtin.file:
+    path: "{{ documentRoot }}/{{ relativePath }}"
+    state: directory
+    mode: '0755'
+  tags:
+    - setup
+    - always
+
+- name: Display repository path for debugging
+  ansible.builtin.debug:
+    msg: "Repository path: {{ documentRoot }}/{{ relativePath }}"
+  tags:
+    - setup
+    - debug
+
+- name: Verify repository directory structure after creation
+  ansible.builtin.stat:
+    path: "{{ documentRoot }}/{{ relativePath }}"
+  register: repo_dir_stat
+  tags:
+    - setup
+    - verification
+    - always
+
+- name: Display repository directory status for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Repository directory exists: {{ repo_dir_stat.stat.exists | default(false) }}"
+      - "Repository directory path: {{ documentRoot }}/{{ relativePath }}"
+  tags:
+    - setup
+    - verification
+    - debug
+
+# ========================================================================
+# Verify ISO Directory Structure
+# ========================================================================
+# Check the structure of mounted ISO to ensure correct synchronization
+- name: List mounted ISO directory structure
+  ansible.builtin.command:
+    cmd: ls -la "{{ mountPath }}/"
+  when: source == 'iso'
+  register: iso_dir_list
+  changed_when: false
+  failed_when: false
+  tags:
+    - sync
+    - verification
+    - always
+
+- name: Display ISO directory structure for debugging
+  ansible.builtin.debug:
+    msg: "{{ iso_dir_list.stdout_lines }}"
+  when:
+    - source == 'iso'
+    - iso_dir_list.stdout_lines | length > 0
+  tags:
+    - sync
+    - verification
+    - debug
+
+- name: Check if BaseOS directory exists in ISO
+  ansible.builtin.stat:
+    path: "{{ mountPath }}/BaseOS"
+  when: source == 'iso'
+  register: iso_baseos_stat
+  tags:
+    - sync
+    - verification
+    - always
+
+- name: Check if AppStream directory exists in ISO
+  ansible.builtin.stat:
+    path: "{{ mountPath }}/AppStream"
+  when: source == 'iso'
+  register: iso_appstream_stat
+  tags:
+    - sync
+    - verification
+    - always
+
+- name: Display ISO directory verification for debugging
+  ansible.builtin.debug:
+    msg:
+      - "BaseOS directory exists in ISO: {{ iso_baseos_stat.stat.exists | default(false) }}"
+      - "AppStream directory exists in ISO: {{ iso_appstream_stat.stat.exists | default(false) }}"
+  when: source == 'iso'
+  tags:
+    - sync
+    - verification
+    - debug
+
+# ========================================================================
+# Synchronize Repository Files
+# ========================================================================
+# Copy repository files from mounted ISO to document root using synchronize
+# module for efficient file transfer
+- name: Copy repo files
+  ansible.posix.synchronize:
+    src: "{{ mountPath }}/"
+    dest: "{{ documentRoot }}/{{ relativePath }}"
+    recursive: true
+    delete: false
+  delegate_to: "{{ inventory_hostname }}"
+  register: sync_result
+  tags:
+    - sync
+    - always
+
+- name: Display synchronization result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Synchronization completed: {{ sync_result.changed | default(false) }}"
+      - "Source: {{ mountPath }}/"
+      - "Destination: {{ documentRoot }}/{{ relativePath }}"
+  tags:
+    - sync
+    - debug
+
+- name: Verify repodata directory exists after synchronization
+  ansible.builtin.stat:
+    path: "{{ documentRoot }}/{{ relativePath }}/BaseOS/repodata"
+  register: baseos_repodata_stat
+  tags:
+    - verification
+    - always
+
+- name: Verify AppStream repodata directory exists after synchronization
+  ansible.builtin.stat:
+    path: "{{ documentRoot }}/{{ relativePath }}/AppStream/repodata"
+  register: appstream_repodata_stat
+  tags:
+    - verification
+    - always
+
+- name: Display repodata directory verification result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "BaseOS repodata exists: {{ baseos_repodata_stat.stat.exists | default(false) }}"
+      - "AppStream repodata exists: {{ appstream_repodata_stat.stat.exists | default(false) }}"
+      - "BaseOS repodata path: {{ documentRoot }}/{{ relativePath }}/BaseOS/repodata"
+      - "AppStream repodata path: {{ documentRoot }}/{{ relativePath }}/AppStream/repodata"
+  tags:
+    - verification
+    - debug
+
+- name: Verify repomd.xml files exist
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ documentRoot }}/{{ relativePath }}/BaseOS/repodata/repomd.xml"
+    - "{{ documentRoot }}/{{ relativePath }}/AppStream/repodata/repomd.xml"
+  register: repomd_files_stat
+  tags:
+    - verification
+    - always
+
+- name: Display repomd.xml verification result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "BaseOS repomd.xml exists: {{ repomd_files_stat.results[0].stat.exists | default(false) }}"
+      - "AppStream repomd.xml exists: {{ repomd_files_stat.results[1].stat.exists | default(false) }}"
+  tags:
+    - verification
+    - debug
+
+# ========================================================================
+# Unmount ISO Image
+# ========================================================================
+# Unmount the ISO image after file synchronization is complete
+- name: Unmount ISO
+  ansible.posix.mount:
+    path: "{{ mountPath }}"
+    state: unmounted
+  when: source == 'iso'
+  register: unmount_result
+  tags:
+    - cleanup
+    - always
+
+- name: Display unmount status for debugging
+  ansible.builtin.debug:
+    msg: "ISO unmounted: {{ unmount_result.changed | default(false) }}"
+  when: source == 'iso'
+  tags:
+    - cleanup
+    - debug
+
+# ========================================================================
+# Configure HTTPD ServerName
+# ========================================================================
+# Set ServerName in httpd configuration to avoid HTTP 400 errors
+- name: Configure httpd ServerName
+  ansible.builtin.lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^#?ServerName'
+    line: 'ServerName {{ inventory_hostname }}:80'
+    backup: true
+  when: protocol == 'http' or protocol == 'https'
+  register: httpd_servername_result
+  tags:
+    - service
+    - always
+
+- name: Display httpd ServerName configuration result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "HTTPD ServerName configured: {{ httpd_servername_result.changed | default(false) }}"
+      - "ServerName: {{ inventory_hostname }}:80"
+  when: protocol == 'http' or protocol == 'https'
+  tags:
+    - service
+    - debug
+
+# ========================================================================
+# Restart Services
+# ========================================================================
+# Restart the web or FTP service to ensure it's running and can serve
+# the repository files
+- name: Restart service httpd, in all cases
+  ansible.builtin.service:
+    name: httpd
+    state: restarted
+  when: protocol == 'http' or protocol == 'https'
+  register: httpd_service_result
+  tags:
+    - service
+    - always
+
+- name: Display httpd service status for debugging
+  ansible.builtin.debug:
+    msg:
+      - "HTTPD service restarted: {{ httpd_service_result.changed | default(false) }}"
+      - "HTTPD service state: {{ httpd_service_result.status.state | default('N/A') }}"
+  when: protocol == 'http' or protocol == 'https'
+  tags:
+    - service
+    - debug
+
+- name: Verify httpd is listening on all interfaces
+  ansible.builtin.command:
+    cmd: ss -tlnp | grep ':80 ' || ss -tlnp | grep ':443 '
+  when: protocol == 'http' or protocol == 'https'
+  register: httpd_listen_result
+  changed_when: false
+  failed_when: false
+  tags:
+    - service
+    - verification
+    - always
+
+- name: Display httpd listening status for debugging
+  ansible.builtin.debug:
+    msg: "{{ httpd_listen_result.stdout_lines }}"
+  when:
+    - protocol == 'http' or protocol == 'https'
+    - httpd_listen_result.stdout_lines | length > 0
+  tags:
+    - service
+    - verification
+    - debug
+
+- name: Restart service vsftpd, in all cases
+  ansible.builtin.service:
+    name: vsftpd
+    state: restarted
+  when: protocol == 'ftp'
+  register: vsftpd_service_result
+  tags:
+    - service
+    - always
+
+- name: Display vsftpd service status for debugging
+  ansible.builtin.debug:
+    msg:
+      - "VSFTPD service restarted: {{ vsftpd_service_result.changed | default(false) }}"
+      - "VSFTPD service state: {{ vsftpd_service_result.status.state | default('N/A') }}"
+  when: protocol == 'ftp'
+  tags:
+    - service
+    - debug
+
+# ========================================================================
+# Configure Firewall
+# ========================================================================
+# Configure firewall to allow HTTP/HTTPS/FTP traffic to the repository server
+- name: Ensure firewalld service is running
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  register: firewalld_service_result
+  tags:
+    - firewall
+    - always
+
+- name: Display firewalld service status for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Firewalld service started: {{ firewalld_service_result.changed | default(false) }}"
+      - "Firewalld service state: {{ firewalld_service_result.status.state | default('N/A') }}"
+  tags:
+    - firewall
+    - debug
+
+- name: Allow HTTP traffic through firewall
+  ansible.posix.firewalld:
+    port: "80/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  when: protocol == 'http'
+  register: firewall_http_result
+  tags:
+    - firewall
+    - always
+
+- name: Allow HTTPS traffic through firewall
+  ansible.posix.firewalld:
+    port: "443/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  when: protocol == 'https'
+  register: firewall_https_result
+  tags:
+    - firewall
+    - always
+
+- name: Allow FTP traffic through firewall
+  ansible.posix.firewalld:
+    service: ftp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: protocol == 'ftp'
+  register: firewall_ftp_result
+  tags:
+    - firewall
+    - always
+
+- name: Display firewall configuration result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "HTTP port opened: {{ firewall_http_result.changed | default(false) if protocol == 'http' else 'N/A' }}"
+      - "HTTPS port opened: {{ firewall_https_result.changed | default(false) if protocol == 'https' else 'N/A' }}"
+      - "FTP service enabled: {{ firewall_ftp_result.changed | default(false) if protocol == 'ftp' else 'N/A' }}"
+  tags:
+    - firewall
+    - debug
+
+# ========================================================================
+# Configure SELinux for Network Access
+# ========================================================================
+# Allow httpd to connect to network (required for serving content)
+- name: Set SELinux boolean for httpd network connectivity
+  ansible.builtin.command:
+    cmd: setsebool -P httpd_can_network_connect on
+  when: protocol == 'http' or protocol == 'https'
+  register: selinux_httpd_network_result
+  changed_when: selinux_httpd_network_result.rc == 0
+  failed_when: selinux_httpd_network_result.rc != 0
+  tags:
+    - selinux
+    - always
+
+- name: Display SELinux httpd network connectivity result for debugging
+  ansible.builtin.debug:
+    msg: "SELinux httpd network connectivity enabled"
+  when:
+    - protocol == 'http' or protocol == 'https'
+    - selinux_httpd_network_result.rc == 0
+  tags:
+    - selinux
+    - debug
+
+# ========================================================================
+# Configure File Permissions and Ownership
+# ========================================================================
+# Set proper file permissions and ownership for httpd to access files
+- name: Set file permissions for repository files
+  ansible.builtin.file:
+    path: "{{ documentRoot }}/{{ relativePath }}"
+    mode: '0755'
+    owner: root
+    group: root
+    recurse: true
+  when: protocol == 'http' or protocol == 'https'
+  register: file_perms_result
+  tags:
+    - permissions
+    - always
+
+- name: Display file permissions result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "File permissions set: {{ file_perms_result.changed | default(false) }}"
+      - "Path: {{ documentRoot }}/{{ relativePath }}"
+  when: protocol == 'http' or protocol == 'https'
+  tags:
+    - permissions
+    - debug
+
+# ========================================================================
+# Configure SELinux Context
+# ========================================================================
+# Apply appropriate SELinux file contexts to ensure web/FTP services can
+# access the repository files. Use restorecon for proper context restoration.
+- name: Apply httpd SELinux file context to filesystem using restorecon
+  ansible.builtin.command:
+    cmd: restorecon -R "{{ documentRoot }}/{{ relativePath }}"
+  when: protocol == 'http' or protocol == 'https'
+  register: selinux_restorecon_result
+  changed_when: selinux_restorecon_result.rc == 0
+  failed_when: selinux_restorecon_result.rc != 0
+  tags:
+    - selinux
+    - always
+
+- name: Apply httpd SELinux file context to filesystem using chcon (fallback)
+  ansible.builtin.command:
+    cmd: chcon -R -t httpd_sys_content_t "{{ documentRoot }}/{{ relativePath }}"
+  when: 
+    - protocol == 'http' or protocol == 'https'
+    - selinux_restorecon_result.rc != 0
+  register: selinux_context_result
+  changed_when: selinux_context_result.rc == 0
+  failed_when: selinux_context_result.rc != 0
+  tags:
+    - selinux
+    - always
+
+- name: Verify SELinux context after application
+  ansible.builtin.command:
+    cmd: ls -Z "{{ documentRoot }}/{{ relativePath }}/BaseOS/repodata/repomd.xml"
+  when: protocol == 'http' or protocol == 'https'
+  register: selinux_verify_result
+  changed_when: false
+  failed_when: false
+  tags:
+    - selinux
+    - verification
+    - always
+
+- name: Display SELinux context verification result for debugging
+  ansible.builtin.debug:
+    msg: "{{ selinux_verify_result.stdout }}"
+  when:
+    - protocol == 'http' or protocol == 'https'
+    - selinux_verify_result.stdout | length > 0
+  tags:
+    - selinux
+    - verification
+    - debug
+
+- name: Apply vsftpd SELinux file context to filesystem
+  ansible.builtin.command:
+    cmd: chcon -R -t public_content_t "{{ documentRoot }}/{{ relativePath }}"
+  when: protocol == 'ftp'
+  register: selinux_ftp_context_result
+  changed_when: selinux_ftp_context_result.rc == 0
+  failed_when: selinux_ftp_context_result.rc != 0
+  tags:
+    - selinux
+    - always
+
+- name: Display SELinux FTP context result for debugging
+  ansible.builtin.debug:
+    msg: "SELinux context applied for vsftpd: {{ documentRoot }}/{{ relativePath }}"
+  when:
+    - protocol == 'ftp'
+    - selinux_ftp_context_result.rc == 0
+  tags:
+    - selinux
+    - debug
+
+- name: Display completion summary
+  ansible.builtin.debug:
+    msg:
+      - "YUM repository server setup completed"
+      - "Repository URL: {{ protocol }}://{{ inventory_hostname }}/{{ relativePath }}"
+      - "Document Root: {{ documentRoot }}/{{ relativePath }}"
+  tags:
+    - summary
+    - always
