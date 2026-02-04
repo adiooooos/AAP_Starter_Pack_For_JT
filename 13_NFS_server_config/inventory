@@ -1,0 +1,29 @@
+# ============================================================================
+# Ansible Inventory for NFS Server Automation
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# NFS Server Group
+# ---------------------------------------------------------------------------
+# The deploy_nfs_server_site.yml playbook will execute on hosts in this group.
+# Place the hostnames or IP addresses of hosts you want to configure as NFS
+# servers here.
+# ---------------------------------------------------------------------------
+[nfs_servers]
+Test-RHEL-7.9-2
+
+# ---------------------------------------------------------------------------
+# AAP Starter Pack Inventory Groups (for reference)
+# ---------------------------------------------------------------------------
+[rhel7]
+Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+
+
