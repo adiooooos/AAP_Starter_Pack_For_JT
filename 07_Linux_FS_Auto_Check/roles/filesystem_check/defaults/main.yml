@@ -1,0 +1,52 @@
+# ============================================================================
+# Role Default Variables: Filesystem Check Role
+# ============================================================================
+#
+# Description:
+#   Default variables for the filesystem_check role. These variables define
+#   which filesystem types and mount points to exclude from checking, and
+#   where to store reports.
+#
+# Customization:
+#   Modify exclude_fs_types to add or remove filesystem types you want to
+#   exclude from checking (e.g., virtual filesystems, network filesystems).
+#   Modify exclude_mount_points to exclude specific mount points (e.g., root
+#   filesystem which typically requires rescue mode for checking).
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+# Filesystem types to exclude from checking
+# These are typically virtual or special filesystems that don't require
+# traditional filesystem checking
+exclude_fs_types:
+  - tmpfs
+  - devtmpfs
+  - iso9660
+  - squashfs
+  - overlay
+  - nfs
+  - cifs
+  - sysfs
+  - proc
+  - devfs
+  - autofs
+
+# Mount points to exclude from checking
+# Root filesystem (/) typically requires rescue mode for checking, so it's
+# excluded by default. Add other mount points as needed.
+exclude_mount_points:
+  - /
+
+# Base path for report storage on remote hosts
+report_base_path: "/tmp"
+
+# Destination path on control node for collected reports
+collection_dest_path: "/tmp"
+
