@@ -1,0 +1,764 @@
+[root@aap25 06_Automated_Inspection_of_Linux]# ansible-playbook service_check_site.yml -i inventory
+
+PLAY [Execute service check and generate reports on all hosts] ********************************************************************************************************
+
+TASK [Gathering Facts] ************************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [Test-RHEL-7.9-1]
+ok: [ansible25.example.com]
+ok: [Test-RHEL-7.9-2]
+ok: [TEST-RHEL-8.9-1]
+
+TASK [Validate OS compatibility (RHEL/CentOS 7/8/9 only)] *************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 8"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 9"
+}
+
+TASK [Display OS information for debugging] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 8.7",
+        "Major Version: 8"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 9.4",
+        "Major Version: 9"
+    ]
+}
+
+TASK [Include service_check role] *************************************************************************************************************************************
+
+TASK [service_check : Validate critical_services_list parameter] ******************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 10 services to check"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 10 services to check"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 10 services to check"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 10 services to check"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 10 services to check"
+}
+
+TASK [service_check : Validate report_base_path parameter] ************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+
+TASK [service_check : Display service check configuration for debugging] **********************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Services to check: sshd, firewalld, chronyd, tuned, NetworkManager, rsyslog, auditd, crond, dbus, systemd-journald",
+        "Total services: 10",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Services to check: sshd, firewalld, chronyd, tuned, NetworkManager, rsyslog, auditd, crond, dbus, systemd-journald",
+        "Total services: 10",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Services to check: sshd, firewalld, chronyd, tuned, NetworkManager, rsyslog, auditd, crond, dbus, systemd-journald",
+        "Total services: 10",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Services to check: sshd, firewalld, chronyd, tuned, NetworkManager, rsyslog, auditd, crond, dbus, systemd-journald",
+        "Total services: 10",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Services to check: sshd, firewalld, chronyd, tuned, NetworkManager, rsyslog, auditd, crond, dbus, systemd-journald",
+        "Total services: 10",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+
+TASK [service_check : Validate OS compatibility (RHEL/CentOS 7/8/9 only)] *********************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 8"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 9"
+}
+
+TASK [service_check : Display OS information for debugging] ***********************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7",
+        "Architecture: x86_64"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7",
+        "Architecture: x86_64"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7",
+        "Architecture: x86_64"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 8.7",
+        "Major Version: 8",
+        "Architecture: x86_64"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 9.4",
+        "Major Version: 9",
+        "Architecture: x86_64"
+    ]
+}
+
+TASK [service_check : Define report file path] ************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-3]
+ok: [Test-RHEL-7.9-2]
+ok: [ansible25.example.com]
+ok: [TEST-RHEL-8.9-1]
+
+TASK [service_check : Display report file path for debugging] *********************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Report file path: /tmp/linux_service_check_Test-RHEL-7.9-1.txt"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "Report file path: /tmp/linux_service_check_Test-RHEL-7.9-3.txt"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "Report file path: /tmp/linux_service_check_Test-RHEL-7.9-2.txt"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "Report file path: /tmp/linux_service_check_TEST-RHEL-8.9-1.txt"
+}
+ok: [ansible25.example.com] => {
+    "msg": "Report file path: /tmp/linux_service_check_ansible25.example.com.txt"
+}
+
+TASK [service_check : Remove old report file if exists] ***************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+changed: [Test-RHEL-7.9-2]
+changed: [Test-RHEL-7.9-1]
+changed: [TEST-RHEL-8.9-1]
+changed: [ansible25.example.com]
+
+TASK [service_check : Display cleanup result for debugging] ***********************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Old report file removed"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "Old report file removed"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "Old report file removed"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "Old report file removed"
+}
+ok: [ansible25.example.com] => {
+    "msg": "Old report file removed"
+}
+
+TASK [service_check : Collect date and time facts] ********************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [Test-RHEL-7.9-1]
+ok: [ansible25.example.com]
+ok: [TEST-RHEL-8.9-1]
+ok: [Test-RHEL-7.9-2]
+
+TASK [service_check : Display timestamp for debugging] ****************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Report generation time: 2026-02-03T14:12:47Z",
+        "Date: 2026-02-03",
+        "Time: 22:12:47"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Report generation time: 2026-02-03T14:09:17Z",
+        "Date: 2026-02-03",
+        "Time: 22:09:17"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Report generation time: 2026-02-03T21:58:59Z",
+        "Date: 2026-02-04",
+        "Time: 05:58:59"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Report generation time: 2026-02-03T14:12:48Z",
+        "Date: 2026-02-03",
+        "Time: 22:12:48"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Report generation time: 2026-02-03T14:12:47Z",
+        "Date: 2026-02-03",
+        "Time: 22:12:47"
+    ]
+}
+
+TASK [service_check : Collect service facts (bulk operation)] *********************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-2]
+ok: [ansible25.example.com]
+ok: [TEST-RHEL-8.9-1]
+
+TASK [service_check : Display service facts collection result for debugging] ******************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Service facts collected successfully",
+        "Total services discovered: 181"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Service facts collected successfully",
+        "Total services discovered: 169"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Service facts collected successfully",
+        "Total services discovered: 162"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Service facts collected successfully",
+        "Total services discovered: 347"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Service facts collected successfully",
+        "Total services discovered: 304"
+    ]
+}
+
+TASK [service_check : Create report file with header] *****************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+changed: [ansible25.example.com]
+changed: [Test-RHEL-7.9-2]
+changed: [Test-RHEL-7.9-1]
+changed: [TEST-RHEL-8.9-1]
+
+TASK [service_check : Display header creation result for debugging] ***************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Report header created"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "Report header created"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "Report header created"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "Report header created"
+}
+ok: [ansible25.example.com] => {
+    "msg": "Report header created"
+}
+
+TASK [service_check : Check service status and append to report] ******************************************************************************************************
+changed: [Test-RHEL-7.9-3] => (item=sshd)
+changed: [Test-RHEL-7.9-1] => (item=sshd)
+changed: [Test-RHEL-7.9-2] => (item=sshd)
+changed: [TEST-RHEL-8.9-1] => (item=sshd)
+changed: [ansible25.example.com] => (item=sshd)
+changed: [Test-RHEL-7.9-3] => (item=firewalld)
+changed: [Test-RHEL-7.9-2] => (item=firewalld)
+changed: [Test-RHEL-7.9-1] => (item=firewalld)
+changed: [ansible25.example.com] => (item=firewalld)
+changed: [TEST-RHEL-8.9-1] => (item=firewalld)
+changed: [Test-RHEL-7.9-3] => (item=chronyd)
+changed: [Test-RHEL-7.9-2] => (item=chronyd)
+changed: [Test-RHEL-7.9-1] => (item=chronyd)
+changed: [ansible25.example.com] => (item=chronyd)
+changed: [TEST-RHEL-8.9-1] => (item=chronyd)
+changed: [Test-RHEL-7.9-3] => (item=tuned)
+changed: [Test-RHEL-7.9-2] => (item=tuned)
+changed: [Test-RHEL-7.9-1] => (item=tuned)
+changed: [ansible25.example.com] => (item=tuned)
+changed: [TEST-RHEL-8.9-1] => (item=tuned)
+changed: [Test-RHEL-7.9-3] => (item=NetworkManager)
+changed: [Test-RHEL-7.9-2] => (item=NetworkManager)
+changed: [Test-RHEL-7.9-1] => (item=NetworkManager)
+changed: [ansible25.example.com] => (item=NetworkManager)
+changed: [TEST-RHEL-8.9-1] => (item=NetworkManager)
+changed: [Test-RHEL-7.9-3] => (item=rsyslog)
+changed: [Test-RHEL-7.9-2] => (item=rsyslog)
+changed: [Test-RHEL-7.9-1] => (item=rsyslog)
+changed: [ansible25.example.com] => (item=rsyslog)
+changed: [TEST-RHEL-8.9-1] => (item=rsyslog)
+changed: [Test-RHEL-7.9-3] => (item=auditd)
+changed: [Test-RHEL-7.9-2] => (item=auditd)
+changed: [Test-RHEL-7.9-1] => (item=auditd)
+changed: [ansible25.example.com] => (item=auditd)
+changed: [Test-RHEL-7.9-3] => (item=crond)
+changed: [TEST-RHEL-8.9-1] => (item=auditd)
+changed: [Test-RHEL-7.9-2] => (item=crond)
+changed: [Test-RHEL-7.9-1] => (item=crond)
+changed: [Test-RHEL-7.9-3] => (item=dbus)
+changed: [ansible25.example.com] => (item=crond)
+changed: [TEST-RHEL-8.9-1] => (item=crond)
+changed: [Test-RHEL-7.9-2] => (item=dbus)
+changed: [Test-RHEL-7.9-1] => (item=dbus)
+changed: [Test-RHEL-7.9-3] => (item=systemd-journald)
+changed: [ansible25.example.com] => (item=dbus)
+changed: [TEST-RHEL-8.9-1] => (item=dbus)
+changed: [Test-RHEL-7.9-2] => (item=systemd-journald)
+changed: [Test-RHEL-7.9-1] => (item=systemd-journald)
+changed: [ansible25.example.com] => (item=systemd-journald)
+changed: [TEST-RHEL-8.9-1] => (item=systemd-journald)
+
+TASK [service_check : Display service check summary for debugging] ****************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Service check completed for 10 services",
+        "Report file: /tmp/linux_service_check_Test-RHEL-7.9-1.txt"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Service check completed for 10 services",
+        "Report file: /tmp/linux_service_check_Test-RHEL-7.9-2.txt"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Service check completed for 10 services",
+        "Report file: /tmp/linux_service_check_Test-RHEL-7.9-3.txt"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Service check completed for 10 services",
+        "Report file: /tmp/linux_service_check_TEST-RHEL-8.9-1.txt"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Service check completed for 10 services",
+        "Report file: /tmp/linux_service_check_ansible25.example.com.txt"
+    ]
+}
+
+TASK [service_check : Verify report file exists and is readable] ******************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-2]
+ok: [ansible25.example.com]
+
+TASK [service_check : Assert report file exists] **********************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Report file verified: /tmp/linux_service_check_Test-RHEL-7.9-1.txt (1605 bytes)"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Report file verified: /tmp/linux_service_check_Test-RHEL-7.9-2.txt (1571 bytes)"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Report file verified: /tmp/linux_service_check_Test-RHEL-7.9-3.txt (1571 bytes)"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Report file verified: /tmp/linux_service_check_TEST-RHEL-8.9-1.txt (1604 bytes)"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Report file verified: /tmp/linux_service_check_ansible25.example.com.txt (1609 bytes)"
+}
+
+TASK [service_check : Display report file information for debugging] **************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Report file exists: True",
+        "Report file size: 1605 bytes",
+        "Report file mode: 0644"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Report file exists: True",
+        "Report file size: 1571 bytes",
+        "Report file mode: 0644"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Report file exists: True",
+        "Report file size: 1571 bytes",
+        "Report file mode: 0644"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Report file exists: True",
+        "Report file size: 1604 bytes",
+        "Report file mode: 0644"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Report file exists: True",
+        "Report file size: 1609 bytes",
+        "Report file mode: 0644"
+    ]
+}
+
+TASK [service_check : Display completion summary] *********************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Service check role completed successfully",
+        "Host: Test-RHEL-7.9-1",
+        "Services checked: 10",
+        "Report location: /tmp/linux_service_check_Test-RHEL-7.9-1.txt"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Service check role completed successfully",
+        "Host: Test-RHEL-7.9-2",
+        "Services checked: 10",
+        "Report location: /tmp/linux_service_check_Test-RHEL-7.9-2.txt"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Service check role completed successfully",
+        "Host: Test-RHEL-7.9-3",
+        "Services checked: 10",
+        "Report location: /tmp/linux_service_check_Test-RHEL-7.9-3.txt"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Service check role completed successfully",
+        "Host: TEST-RHEL-8.9-1",
+        "Services checked: 10",
+        "Report location: /tmp/linux_service_check_TEST-RHEL-8.9-1.txt"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Service check role completed successfully",
+        "Host: ansible25.example.com",
+        "Services checked: 10",
+        "Report location: /tmp/linux_service_check_ansible25.example.com.txt"
+    ]
+}
+
+PLAY [Collect service check reports from all hosts] *******************************************************************************************************************
+
+TASK [Validate collection destination path] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+
+TASK [Display collection configuration for debugging] *****************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Report source path: /tmp/linux_service_check_Test-RHEL-7.9-1.txt",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Report source path: /tmp/linux_service_check_Test-RHEL-7.9-2.txt",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Report source path: /tmp/linux_service_check_Test-RHEL-7.9-3.txt",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Report source path: /tmp/linux_service_check_TEST-RHEL-8.9-1.txt",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Report source path: /tmp/linux_service_check_ansible25.example.com.txt",
+        "Collection destination: /tmp"
+    ]
+}
+
+TASK [Fetch report file from remote host] *****************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+changed: [Test-RHEL-7.9-2]
+changed: [Test-RHEL-7.9-1]
+changed: [ansible25.example.com]
+changed: [TEST-RHEL-8.9-1]
+
+TASK [Display fetch result for debugging] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/linux_service_check_Test-RHEL-7.9-1.txt"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/linux_service_check_Test-RHEL-7.9-2.txt"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/linux_service_check_Test-RHEL-7.9-3.txt"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/linux_service_check_TEST-RHEL-8.9-1.txt"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/linux_service_check_ansible25.example.com.txt"
+    ]
+}
+
+PLAY [Display final summary and confirmation] *************************************************************************************************************************
+
+TASK [Display completion summary] *************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "✅ All service check reports have been successfully collected!",
+        "Reports are stored in the control node's /tmp/ directory.",
+        "Report file naming format: linux_service_check_<hostname>.txt",
+        "You can review individual reports or aggregate them for analysis."
+    ]
+}
+
+TASK [Display next steps] *********************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "Next steps:",
+        "  1. Review individual reports: cat /tmp/linux_service_check_<hostname>.txt",
+        "  2. Aggregate reports for analysis",
+        "  3. Identify services that are not running or not enabled",
+        "  4. Take corrective actions as needed"
+    ]
+}
+
+PLAY RECAP ************************************************************************************************************************************************************
+TEST-RHEL-8.9-1            : ok=28   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+Test-RHEL-7.9-1            : ok=28   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+Test-RHEL-7.9-2            : ok=28   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+Test-RHEL-7.9-3            : ok=28   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+ansible25.example.com      : ok=28   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+localhost                  : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+[root@aap25 06_Automated_Inspection_of_Linux]# more /tmp/linux_service_check_
+linux_service_check_ansible25.example.com.txt  linux_service_check_Test-RHEL-7.9-2.txt        linux_service_check_TEST-RHEL-8.9-1.txt
+linux_service_check_Test-RHEL-7.9-1.txt        linux_service_check_Test-RHEL-7.9-3.txt
+[root@aap25 06_Automated_Inspection_of_Linux]# more /tmp/linux_service_check_Test-RHEL-7.9-1.txt
+# RHEL Key Service Status Check Report for Test-RHEL-7.9-1
+# Generated at: 2026-02-03T14:12:47Z
+# Distribution: RedHat 7
+# Architecture: x86_64
+# ---
+
+[Service Status Report: sshd]
+   Service Name: sshd.service
+   Current State: RUNNING
+   Boot Status: ENABLED
+   Service Source: systemd
+
+[Service Status Report: firewalld]
+   Service Name: firewalld.service
+   Current State: INACTIVE
+   Boot Status: DISABLED
+   Service Source: systemd
+
+[Service Status Report: chronyd]
+   Service Name: chronyd.service
+   Current State: RUNNING
+   Boot Status: ENABLED
+   Service Source: systemd
+
+[Service Status Report: tuned]
+   Service Name: tuned.service
+   Current State: RUNNING
+   Boot Status: ENABLED
+   Service Source: systemd
+
+[Service Status Report: NetworkManager]
+   Service Name: NetworkManager.service
+   Current State: RUNNING
+   Boot Status: ENABLED
+   Service Source: systemd
+
+[Service Status Report: rsyslog]
+   Service Name: rsyslog.service
+   Current State: RUNNING
+   Boot Status: ENABLED
+   Service Source: systemd
+
+[Service Status Report: auditd]
+   Service Name: auditd.service
+   Current State: RUNNING
+   Boot Status: ENABLED
+   Service Source: systemd
+
+[Service Status Report: crond]
+   Service Name: crond.service
+   Current State: RUNNING
+   Boot Status: ENABLED
+   Service Source: systemd
+
+[Service Status Report: dbus]
+   Service Name: dbus.service
+   Current State: RUNNING
+   Boot Status: STATIC
+   Service Source: systemd
+
+[Service Status Report: systemd-journald]
+   Service Name: systemd-journald.service
+   Current State: RUNNING
+   Boot Status: STATIC
+   Service Source: systemd

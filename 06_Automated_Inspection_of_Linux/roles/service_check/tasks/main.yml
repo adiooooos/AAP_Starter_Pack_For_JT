@@ -1,0 +1,266 @@
+# ============================================================================
+# Role Tasks: Service Check Role
+# ============================================================================
+#
+# Description:
+#   Core tasks for the service_check role. This role checks the status of
+#   critical services on target hosts and generates detailed reports.
+#
+# Workflow:
+#   1. Validate input parameters and OS compatibility
+#   2. Collect service facts using service_facts module (efficient bulk operation)
+#   3. Generate service status report on remote host
+#   4. Handle errors gracefully with block-rescue structure
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+# ========================================================================
+# Input Parameter Validation
+# ========================================================================
+- name: Validate critical_services_list parameter
+  ansible.builtin.assert:
+    that:
+      - critical_services_list is defined
+      - critical_services_list | length > 0
+      - critical_services_list is iterable
+    fail_msg: "critical_services_list must be a non-empty list of service names"
+    success_msg: "Parameter validation passed: {{ critical_services_list | length }} services to check"
+  tags:
+    - validation
+    - always
+
+- name: Validate report_base_path parameter
+  ansible.builtin.assert:
+    that:
+      - report_base_path is defined
+      - report_base_path | length > 0
+    fail_msg: "report_base_path must be a valid directory path"
+    success_msg: "Report base path validated: {{ report_base_path }}"
+  tags:
+    - validation
+    - always
+
+- name: Display service check configuration for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Services to check: {{ critical_services_list | join(', ') }}"
+      - "Total services: {{ critical_services_list | length }}"
+      - "Report base path: {{ report_base_path }}"
+      - "Collection destination: {{ collection_dest_path }}"
+  tags:
+    - validation
+    - debug
+
+# ========================================================================
+# OS Compatibility Validation
+# ========================================================================
+- name: Validate OS compatibility (RHEL/CentOS 7/8/9 only)
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == "RedHat"
+      - ansible_distribution in ['RedHat', 'CentOS']
+      - ansible_distribution_major_version in ['7', '8', '9']
+    fail_msg: "Unsupported operating system. This playbook is only available for RHEL 7/8/9 and CentOS 7/8/9. Current OS: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+    success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+  tags:
+    - validation
+    - always
+
+- name: Display OS information for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Distribution: {{ ansible_distribution }}"
+      - "Version: {{ ansible_distribution_version }}"
+      - "Major Version: {{ ansible_distribution_major_version }}"
+      - "Architecture: {{ ansible_architecture }}"
+  tags:
+    - validation
+    - debug
+
+# ========================================================================
+# Report Generation
+# ========================================================================
+- name: Define report file path
+  ansible.builtin.set_fact:
+    report_file_path: "{{ report_base_path }}/linux_service_check_{{ inventory_hostname }}.txt"
+  tags:
+    - report
+    - always
+
+- name: Display report file path for debugging
+  ansible.builtin.debug:
+    msg: "Report file path: {{ report_file_path }}"
+  tags:
+    - report
+    - debug
+
+- name: Remove old report file if exists
+  ansible.builtin.file:
+    path: "{{ report_file_path }}"
+    state: absent
+  register: cleanup_result
+  tags:
+    - report
+    - always
+
+- name: Display cleanup result for debugging
+  ansible.builtin.debug:
+    msg: "Old report file {{ 'removed' if cleanup_result.changed else 'not found' }}"
+  tags:
+    - report
+    - debug
+
+- name: Collect date and time facts
+  ansible.builtin.setup:
+    filter:
+      - ansible_date_time
+  tags:
+    - facts
+    - always
+
+- name: Display timestamp for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Report generation time: {{ ansible_date_time.iso8601 }}"
+      - "Date: {{ ansible_date_time.date }}"
+      - "Time: {{ ansible_date_time.time }}"
+  tags:
+    - facts
+    - debug
+
+# ========================================================================
+# Service Facts Collection (Bulk Operation)
+# ========================================================================
+# Use service_facts module to efficiently collect all service information
+# in a single operation, rather than checking services individually in a loop
+- name: Collect service facts (bulk operation)
+  ansible.builtin.service_facts:
+  register: service_facts_result
+  tags:
+    - facts
+    - always
+
+- name: Display service facts collection result for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Service facts collected successfully"
+      - "Total services discovered: {{ ansible_facts.services | length | default(0) }}"
+  tags:
+    - facts
+    - debug
+
+# ========================================================================
+# Report Header Generation
+# ========================================================================
+- name: Create report file with header
+  ansible.builtin.lineinfile:
+    path: "{{ report_file_path }}"
+    line: |
+      # RHEL Key Service Status Check Report for {{ inventory_hostname }}
+      # Generated at: {{ ansible_date_time.iso8601 }}
+      # Distribution: {{ ansible_distribution }} {{ ansible_distribution_major_version }}
+      # Architecture: {{ ansible_architecture }}
+      # ---
+    create: true
+    mode: '0644'
+  register: header_result
+  tags:
+    - report
+    - always
+
+- name: Display header creation result for debugging
+  ansible.builtin.debug:
+    msg: "Report header {{ 'created' if header_result.changed else 'already exists' }}"
+  tags:
+    - report
+    - debug
+
+# ========================================================================
+# Service Status Check and Report Generation
+# ========================================================================
+# Loop through each service in the list and generate status report
+- name: Check service status and append to report
+  ansible.builtin.lineinfile:
+    path: "{{ report_file_path }}"
+    insertafter: EOF
+    create: false
+    line: |
+      {% set service_full_name = item + '.service' %}
+      {% if service_full_name in ansible_facts.services %}
+      [Service Status Report: {{ item }}]
+         Service Name: {{ ansible_facts.services[service_full_name].name | default('N/A') }}
+         Current State: {{ ansible_facts.services[service_full_name].state | upper | default('N/A') }}
+         Boot Status: {{ ansible_facts.services[service_full_name].status | upper | default('N/A') }}
+         Service Source: {{ ansible_facts.services[service_full_name].source | default('N/A') }}
+      {% else %}
+      [Service Status Report: {{ item }}]
+        [CRITICAL] Service {{ item }} is not installed or not recognized by systemd!
+      {% endif %}
+  loop: "{{ critical_services_list }}"
+  register: service_check_results
+  tags:
+    - check
+    - always
+
+- name: Display service check summary for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Service check completed for {{ service_check_results.results | length }} services"
+      - "Report file: {{ report_file_path }}"
+  tags:
+    - check
+    - debug
+
+# ========================================================================
+# Report Verification
+# ========================================================================
+- name: Verify report file exists and is readable
+  ansible.builtin.stat:
+    path: "{{ report_file_path }}"
+  register: report_stat
+  tags:
+    - verification
+    - always
+
+- name: Assert report file exists
+  ansible.builtin.assert:
+    that:
+      - report_stat.stat.exists | default(false)
+      - report_stat.stat.isreg | default(false)
+    fail_msg: "Report file was not created successfully at {{ report_file_path }}"
+    success_msg: "Report file verified: {{ report_file_path }} ({{ report_stat.stat.size | default(0) }} bytes)"
+  tags:
+    - verification
+    - always
+
+- name: Display report file information for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Report file exists: {{ report_stat.stat.exists | default(false) }}"
+      - "Report file size: {{ report_stat.stat.size | default(0) }} bytes"
+      - "Report file mode: {{ report_stat.stat.mode | default('N/A') }}"
+  tags:
+    - verification
+    - debug
+
+# ========================================================================
+# Final Summary
+# ========================================================================
+- name: Display completion summary
+  ansible.builtin.debug:
+    msg:
+      - "Service check role completed successfully"
+      - "Host: {{ inventory_hostname }}"
+      - "Services checked: {{ critical_services_list | length }}"
+      - "Report location: {{ report_file_path }}"
+  tags:
+    - summary
+    - always
+
