@@ -1,0 +1,29 @@
+# ============================================================================
+# Ansible Inventory for SSH Connection Troubleshooting & Auto‑Remediation
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# SSH Fix Target Group
+# ---------------------------------------------------------------------------
+# The ssh_connection_auto_fix_site.yml playbook will execute on hosts in this
+# group. Place the hostnames or IP addresses of systems where you want to
+# diagnose and remediate SSH connectivity issues.
+# ---------------------------------------------------------------------------
+[ssh_fix_targets]
+Test-RHEL-7.9-2
+
+# ---------------------------------------------------------------------------
+# AAP Starter Pack Inventory Groups (for reference)
+# You can reuse your existing inventory structure and simply add hosts to the
+# ssh_fix_targets group as needed.
+# ---------------------------------------------------------------------------
+[rhel7]
+Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
