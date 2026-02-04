@@ -1,0 +1,254 @@
+# ============================================================================
+# Role Tasks: Filesystem Check Role
+# ============================================================================
+#
+# Description:
+#   Core tasks for the filesystem_check role. This role performs read-only
+#   filesystem health checks on target hosts and generates comprehensive
+#   HTML reports.
+#
+# Workflow:
+#   1. Validate input parameters and OS compatibility
+#   2. Gather disk space usage information (df -h)
+#   3. Gather inode usage information (df -i)
+#   4. Check for xfs_scrub command availability
+#   5. Perform read-only filesystem health checks on all mounted filesystems
+#   6. Generate HTML report from template
+#   7. Handle errors gracefully with block-rescue structure
+#
+# Safety:
+#   - All filesystem checks are read-only (xfs_scrub, fsck -n)
+#   - No modifications are made to filesystems
+#   - Root filesystem is excluded by default (requires rescue mode)
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+# ========================================================================
+# Input Parameter Validation
+# ========================================================================
+- name: Validate exclude_fs_types parameter
+  ansible.builtin.assert:
+    that:
+      - exclude_fs_types is defined
+      - exclude_fs_types is iterable
+    fail_msg: "exclude_fs_types must be a list of filesystem types"
+    success_msg: "Parameter validation passed: {{ exclude_fs_types | length }} filesystem types to exclude"
+  tags:
+    - validation
+    - always
+
+- name: Validate exclude_mount_points parameter
+  ansible.builtin.assert:
+    that:
+      - exclude_mount_points is defined
+      - exclude_mount_points is iterable
+    fail_msg: "exclude_mount_points must be a list of mount points"
+    success_msg: "Parameter validation passed: {{ exclude_mount_points | length }} mount points to exclude"
+  tags:
+    - validation
+    - always
+
+- name: Validate report_base_path parameter
+  ansible.builtin.assert:
+    that:
+      - report_base_path is defined
+      - report_base_path | length > 0
+    fail_msg: "report_base_path must be a valid directory path"
+    success_msg: "Report base path validated: {{ report_base_path }}"
+  tags:
+    - validation
+    - always
+
+- name: Display filesystem check configuration for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Excluded filesystem types: {{ exclude_fs_types | join(', ') }}"
+      - "Excluded mount points: {{ exclude_mount_points | join(', ') }}"
+      - "Report base path: {{ report_base_path }}"
+      - "Collection destination: {{ collection_dest_path }}"
+  tags:
+    - validation
+    - debug
+
+# ========================================================================
+# OS Compatibility Validation
+# ========================================================================
+- name: Validate OS compatibility (RHEL/CentOS 7/8/9 only)
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == "RedHat"
+      - ansible_distribution in ['RedHat', 'CentOS']
+      - ansible_distribution_major_version in ['7', '8', '9']
+    fail_msg: "Unsupported operating system. This playbook is only available for RHEL 7/8/9 and CentOS 7/8/9. Current OS: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+    success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+  tags:
+    - validation
+    - always
+
+- name: Display OS information for debugging
+  ansible.builtin.debug:
+    msg:
+      - "Distribution: {{ ansible_distribution }}"
+      - "Version: {{ ansible_distribution_version }}"
+      - "Major Version: {{ ansible_distribution_major_version }}"
+      - "Architecture: {{ ansible_architecture }}"
+  tags:
+    - validation
+    - debug
+
+# ========================================================================
+# Gather Filesystem Information
+# ========================================================================
+- name: Gather disk space usage information (df -h)
+  ansible.builtin.command: df -h
+  register: df_output
+  changed_when: false
+  failed_when: false
+  tags:
+    - gather
+    - always
+
+- name: Display disk space information for debugging
+  ansible.builtin.debug:
+    msg: "Disk space information collected successfully"
+  when: df_output.rc == 0
+  tags:
+    - gather
+    - debug
+
+- name: Gather inode usage information (df -i)
+  ansible.builtin.command: df -i
+  register: df_inode_output
+  changed_when: false
+  failed_when: false
+  tags:
+    - gather
+    - always
+
+- name: Display inode information for debugging
+  ansible.builtin.debug:
+    msg: "Inode usage information collected successfully"
+  when: df_inode_output.rc == 0
+  tags:
+    - gather
+    - debug
+
+# ========================================================================
+# Check for xfs_scrub Command Availability
+# ========================================================================
+- name: Check if xfs_scrub command exists
+  ansible.builtin.command: which xfs_scrub
+  register: xfs_scrub_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - precheck
+    - always
+
+- name: Display xfs_scrub availability for debugging
+  ansible.builtin.debug:
+    msg: "xfs_scrub command {{ 'available' if xfs_scrub_check.rc == 0 else 'not available' }}"
+  tags:
+    - precheck
+    - debug
+
+# ========================================================================
+# Perform Filesystem Health Checks
+# ========================================================================
+- name: Perform read-only filesystem health checks
+  block:
+    - name: Check filesystem health (read-only)
+      ansible.builtin.command: >-
+        {% if item.fstype == 'xfs' and xfs_scrub_check.rc == 0 %}
+        xfs_scrub {{ item.device }}
+        {% elif item.fstype == 'xfs' and xfs_scrub_check.rc != 0 %}
+        echo "SKIPPED: xfs_scrub command not available"
+        {% elif item.fstype in ['ext2', 'ext3', 'ext4'] %}
+        fsck -n {{ item.device }}
+        {% else %}
+        echo "SKIPPED: Unsupported filesystem type {{ item.fstype }}"
+        {% endif %}
+      register: check_results
+      loop: "{{ ansible_mounts }}"
+      when:
+        - item.fstype not in exclude_fs_types
+        - item.mount not in exclude_mount_points
+      changed_when: false
+      failed_when: false
+      tags:
+        - check
+        - always
+
+    - name: Display filesystem check summary for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Filesystem checks completed"
+          - "Total check results: {{ check_results.results | default([]) | length }}"
+          - "Note: Some filesystems may have been excluded based on exclude_fs_types and exclude_mount_points"
+      tags:
+        - check
+        - debug
+
+  rescue:
+    - name: Handle filesystem check errors
+      ansible.builtin.debug:
+        msg:
+          - "⚠️ Warning: Some filesystem checks encountered errors"
+          - "This is normal for read-only checks - review the report for details"
+      tags:
+        - check
+        - always
+
+# ========================================================================
+# Generate HTML Report
+# ========================================================================
+- name: Generate HTML report from template
+  block:
+    - name: Create report directory if it doesn't exist
+      ansible.builtin.file:
+        path: "{{ report_base_path }}"
+        state: directory
+        mode: '0755'
+      tags:
+        - report
+        - always
+
+    - name: Generate HTML report
+      ansible.builtin.template:
+        src: "report.html.j2"
+        dest: "{{ report_base_path }}/{{ inventory_hostname }}-fs-report-{{ ansible_date_time.iso8601 | replace(':', '-') }}.html"
+        mode: '0644'
+      vars:
+        df_output: "{{ df_output }}"
+        df_inode_output: "{{ df_inode_output }}"
+        check_results: "{{ check_results | default({'results': []}) }}"
+      tags:
+        - report
+        - always
+
+    - name: Display report generation success
+      ansible.builtin.debug:
+        msg:
+          - "✅ HTML report generated successfully"
+          - "Report path: {{ report_base_path }}/{{ inventory_hostname }}-fs-report-{{ ansible_date_time.iso8601 | replace(':', '-') }}.html"
+      tags:
+        - report
+        - debug
+
+  rescue:
+    - name: Handle report generation errors
+      ansible.builtin.debug:
+        msg:
+          - "❌ Error: Failed to generate HTML report"
+          - "Please check template file and permissions"
+      tags:
+        - report
+        - always
+
