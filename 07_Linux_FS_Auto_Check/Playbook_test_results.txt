@@ -1,0 +1,614 @@
+[root@aap25 07_Linux_FS_Auto_Check]# ansible-playbook filesystem_check_site.yml  -i inventory
+
+PLAY [Execute filesystem check and generate reports on all hosts] *****************************************************************************************************
+
+TASK [Gathering Facts] ************************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com]
+ok: [Test-RHEL-7.9-2]
+ok: [Test-RHEL-7.9-1]
+
+TASK [Validate OS compatibility (RHEL/CentOS 7/8/9 only)] *************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 8"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 9"
+}
+
+TASK [Display OS information for debugging] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 8.7",
+        "Major Version: 8"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 9.4",
+        "Major Version: 9"
+    ]
+}
+
+TASK [Include filesystem_check role] **********************************************************************************************************************************
+
+TASK [filesystem_check : Validate exclude_fs_types parameter] *********************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 11 filesystem types to exclude"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 11 filesystem types to exclude"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 11 filesystem types to exclude"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 11 filesystem types to exclude"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 11 filesystem types to exclude"
+}
+
+TASK [filesystem_check : Validate exclude_mount_points parameter] *****************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 1 mount points to exclude"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 1 mount points to exclude"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 1 mount points to exclude"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 1 mount points to exclude"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Parameter validation passed: 1 mount points to exclude"
+}
+
+TASK [filesystem_check : Validate report_base_path parameter] *********************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Report base path validated: /tmp"
+}
+
+TASK [filesystem_check : Display filesystem check configuration for debugging] ****************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Excluded filesystem types: tmpfs, devtmpfs, iso9660, squashfs, overlay, nfs, cifs, sysfs, proc, devfs, autofs",
+        "Excluded mount points: /",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Excluded filesystem types: tmpfs, devtmpfs, iso9660, squashfs, overlay, nfs, cifs, sysfs, proc, devfs, autofs",
+        "Excluded mount points: /",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Excluded filesystem types: tmpfs, devtmpfs, iso9660, squashfs, overlay, nfs, cifs, sysfs, proc, devfs, autofs",
+        "Excluded mount points: /",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Excluded filesystem types: tmpfs, devtmpfs, iso9660, squashfs, overlay, nfs, cifs, sysfs, proc, devfs, autofs",
+        "Excluded mount points: /",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Excluded filesystem types: tmpfs, devtmpfs, iso9660, squashfs, overlay, nfs, cifs, sysfs, proc, devfs, autofs",
+        "Excluded mount points: /",
+        "Report base path: /tmp",
+        "Collection destination: /tmp"
+    ]
+}
+
+TASK [filesystem_check : Validate OS compatibility (RHEL/CentOS 7/8/9 only)] ******************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 8"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 9"
+}
+
+TASK [filesystem_check : Display OS information for debugging] ********************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7",
+        "Architecture: x86_64"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7",
+        "Architecture: x86_64"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 7.9",
+        "Major Version: 7",
+        "Architecture: x86_64"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 8.7",
+        "Major Version: 8",
+        "Architecture: x86_64"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Distribution: RedHat",
+        "Version: 9.4",
+        "Major Version: 9",
+        "Architecture: x86_64"
+    ]
+}
+
+TASK [filesystem_check : Gather disk space usage information (df -h)] *************************************************************************************************
+ok: [Test-RHEL-7.9-2]
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com]
+
+TASK [filesystem_check : Display disk space information for debugging] ************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Disk space information collected successfully"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "Disk space information collected successfully"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "Disk space information collected successfully"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "Disk space information collected successfully"
+}
+ok: [ansible25.example.com] => {
+    "msg": "Disk space information collected successfully"
+}
+
+TASK [filesystem_check : Gather inode usage information (df -i)] ******************************************************************************************************
+ok: [Test-RHEL-7.9-2]
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com]
+
+TASK [filesystem_check : Display inode information for debugging] *****************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Inode usage information collected successfully"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "Inode usage information collected successfully"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "Inode usage information collected successfully"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "Inode usage information collected successfully"
+}
+ok: [ansible25.example.com] => {
+    "msg": "Inode usage information collected successfully"
+}
+
+TASK [filesystem_check : Check if xfs_scrub command exists] ***********************************************************************************************************
+ok: [Test-RHEL-7.9-2]
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com]
+
+TASK [filesystem_check : Display xfs_scrub availability for debugging] ************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "xfs_scrub command not available"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": "xfs_scrub command not available"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "xfs_scrub command not available"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "xfs_scrub command not available"
+}
+ok: [ansible25.example.com] => {
+    "msg": "xfs_scrub command not available"
+}
+
+TASK [filesystem_check : Check filesystem health (read-only)] *********************************************************************************************************
+skipping: [TEST-RHEL-8.9-1] => (item={'mount': '/', 'device': '/dev/mapper/rhel-root', 'fstype': 'xfs', 'options': 'rw,seclabel,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota', 'size_total': 46588542976, 'size_available': 13956190208, 'block_size': 4096, 'block_total': 11374156, 'block_available': 3407273, 'block_used': 7966883, 'inode_total': 22759424, 'inode_available': 22613137, 'inode_used': 146287, 'uuid': 'd3ce1122-57e3-4a2a-bb70-8309464a4706'})
+skipping: [ansible25.example.com] => (item={'mount': '/', 'device': '/dev/mapper/rhel-root', 'fstype': 'xfs', 'options': 'rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota', 'size_total': 37748736000, 'size_available': 24458719232, 'block_size': 4096, 'block_total': 9216000, 'block_available': 5971367, 'block_used': 3244633, 'inode_total': 18464768, 'inode_available': 18037538, 'inode_used': 427230, 'uuid': 'ff5b3383-d3c0-4ddc-9e35-44395d98284c'})
+ok: [Test-RHEL-7.9-2] => (item={'block_used': 38300, 'uuid': '766c06c5-b158-458a-956f-4d22a55f47fd', 'size_total': 1063256064, 'block_total': 259584, 'mount': '/boot', 'block_available': 221284, 'size_available': 906379264, 'fstype': 'xfs', 'inode_total': 524288, 'inode_available': 523963, 'device': '/dev/sda1', 'inode_used': 325, 'block_size': 4096, 'options': 'rw,relatime,attr2,inode64,noquota'})
+skipping: [Test-RHEL-7.9-2] => (item={'block_used': 684671, 'uuid': 'ad08b535-bdaf-4495-8581-c2dd927f54c4', 'size_total': 18238930944, 'block_total': 4452864, 'mount': '/', 'block_available': 3768193, 'size_available': 15434518528, 'fstype': 'xfs', 'inode_total': 8910848, 'inode_available': 8879530, 'device': '/dev/mapper/rhel-root', 'inode_used': 31318, 'block_size': 4096, 'options': 'rw,relatime,attr2,inode64,noquota'})
+ok: [Test-RHEL-7.9-1] => (item={'block_used': 49577, 'uuid': 'a652325b-edd3-4cd4-9c3e-38045ee16057', 'size_total': 1063256064, 'block_total': 259584, 'mount': '/boot', 'block_available': 210007, 'size_available': 860188672, 'fstype': 'xfs', 'inode_total': 524288, 'inode_available': 523956, 'device': '/dev/sda1', 'inode_used': 332, 'block_size': 4096, 'options': 'rw,relatime,attr2,inode64,noquota'})
+skipping: [Test-RHEL-7.9-1] => (item={'block_used': 828157, 'uuid': 'ee81ea4b-4290-4262-8436-15d8bf27a434', 'size_total': 18238930944, 'block_total': 4452864, 'mount': '/', 'block_available': 3624707, 'size_available': 14846799872, 'fstype': 'xfs', 'inode_total': 8910848, 'inode_available': 8846166, 'device': '/dev/mapper/rhel-root', 'inode_used': 64682, 'block_size': 4096, 'options': 'rw,relatime,attr2,inode64,noquota'})
+ok: [Test-RHEL-7.9-3] => (item={'block_used': 38352, 'uuid': 'd25791d8-a466-4a51-b06b-5650856a7c82', 'size_total': 1063256064, 'block_total': 259584, 'mount': '/boot', 'block_available': 221232, 'size_available': 906166272, 'fstype': 'xfs', 'inode_total': 524288, 'inode_available': 523963, 'device': '/dev/sda1', 'inode_used': 325, 'block_size': 4096, 'options': 'rw,relatime,attr2,inode64,noquota'})
+skipping: [Test-RHEL-7.9-3] => (item={'block_used': 609224, 'uuid': '26e42eee-b67d-4a40-8b17-ad9438638c0d', 'size_total': 18238930944, 'block_total': 4452864, 'mount': '/', 'block_available': 3843640, 'size_available': 15743549440, 'fstype': 'xfs', 'inode_total': 8910848, 'inode_available': 8880501, 'device': '/dev/mapper/rhel-root', 'inode_used': 30347, 'block_size': 4096, 'options': 'rw,relatime,attr2,inode64,noquota'})
+ok: [TEST-RHEL-8.9-1] => (item={'mount': '/boot', 'device': '/dev/sda2', 'fstype': 'xfs', 'options': 'rw,seclabel,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota', 'size_total': 1063256064, 'size_available': 797773824, 'block_size': 4096, 'block_total': 259584, 'block_available': 194769, 'block_used': 64815, 'inode_total': 524288, 'inode_available': 524269, 'inode_used': 19, 'uuid': '281aa2fc-3521-41d9-95d7-59e29ca1e328'})
+ok: [ansible25.example.com] => (item={'mount': '/home', 'device': '/dev/mapper/rhel-home', 'fstype': 'xfs', 'options': 'rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota', 'size_total': 72074919936, 'size_available': 49413160960, 'block_size': 4096, 'block_total': 17596416, 'block_available': 12063760, 'block_used': 5532656, 'inode_total': 35225600, 'inode_available': 34128901, 'inode_used': 1096699, 'uuid': '6620e40a-45bf-49d0-8024-c64d8dc5098f'})
+ok: [ansible25.example.com] => (item={'mount': '/boot', 'device': '/dev/sda2', 'fstype': 'xfs', 'options': 'rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota', 'size_total': 1006632960, 'size_available': 730292224, 'block_size': 4096, 'block_total': 245760, 'block_available': 178294, 'block_used': 67466, 'inode_total': 524288, 'inode_available': 524267, 'inode_used': 21, 'uuid': 'a76e70fd-f101-4741-9bc6-967e1def439f'})
+ok: [TEST-RHEL-8.9-1] => (item={'mount': '/boot/efi', 'device': '/dev/sda1', 'fstype': 'vfat', 'options': 'rw,relatime,fmask=0077,dmask=0077,codepage=437,iocharset=ascii,shortname=winnt,errors=remount-ro', 'size_total': 627900416, 'size_available': 621862912, 'block_size': 4096, 'block_total': 153296, 'block_available': 151822, 'block_used': 1474, 'inode_total': 0, 'inode_available': 0, 'inode_used': 0, 'uuid': '04E7-BAC5'})
+skipping: [TEST-RHEL-8.9-1] => (item={'mount': '/mnt/cdrom', 'device': '/dev/sr0', 'fstype': 'iso9660', 'options': 'ro,relatime,nojoliet,check=s,map=n,blocksize=2048', 'size_total': 11465160704, 'size_available': 0, 'block_size': 2048, 'block_total': 5598223, 'block_available': 0, 'block_used': 5598223, 'inode_total': 0, 'inode_available': 0, 'inode_used': 0, 'uuid': '2022-04-20-16-41-14-00'})
+ok: [ansible25.example.com] => (item={'mount': '/boot/efi', 'device': '/dev/sda1', 'fstype': 'vfat', 'options': 'rw,relatime,fmask=0077,dmask=0077,codepage=437,iocharset=ascii,shortname=winnt,errors=remount-ro', 'size_total': 627900416, 'size_available': 620519424, 'block_size': 4096, 'block_total': 153296, 'block_available': 151494, 'block_used': 1802, 'inode_total': 0, 'inode_available': 0, 'inode_used': 0, 'uuid': '7867-DA97'})
+
+TASK [filesystem_check : Display filesystem check summary for debugging] **********************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Filesystem checks completed",
+        "Total check results: 2",
+        "Note: Some filesystems may have been excluded based on exclude_fs_types and exclude_mount_points"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Filesystem checks completed",
+        "Total check results: 2",
+        "Note: Some filesystems may have been excluded based on exclude_fs_types and exclude_mount_points"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Filesystem checks completed",
+        "Total check results: 2",
+        "Note: Some filesystems may have been excluded based on exclude_fs_types and exclude_mount_points"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Filesystem checks completed",
+        "Total check results: 4",
+        "Note: Some filesystems may have been excluded based on exclude_fs_types and exclude_mount_points"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Filesystem checks completed",
+        "Total check results: 4",
+        "Note: Some filesystems may have been excluded based on exclude_fs_types and exclude_mount_points"
+    ]
+}
+
+TASK [filesystem_check : Create report directory if it doesn't exist] *************************************************************************************************
+ok: [Test-RHEL-7.9-2]
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-3]
+ok: [ansible25.example.com]
+ok: [TEST-RHEL-8.9-1]
+
+TASK [filesystem_check : Generate HTML report] ************************************************************************************************************************
+changed: [Test-RHEL-7.9-1]
+changed: [Test-RHEL-7.9-2]
+changed: [Test-RHEL-7.9-3]
+changed: [ansible25.example.com]
+changed: [TEST-RHEL-8.9-1]
+
+TASK [filesystem_check : Display report generation success] ***********************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "✅ HTML report generated successfully",
+        "Report path: /tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-32-56Z.html"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "✅ HTML report generated successfully",
+        "Report path: /tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-29-23Z.html"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "✅ HTML report generated successfully",
+        "Report path: /tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-19-03Z.html"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "✅ HTML report generated successfully",
+        "Report path: /tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-32-52Z.html"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "✅ HTML report generated successfully",
+        "Report path: /tmp/ansible25.example.com-fs-report-2026-02-04T03-32-52Z.html"
+    ]
+}
+
+PLAY [Collect filesystem check reports from all hosts] ****************************************************************************************************************
+
+TASK [Validate collection destination path] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-2] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Collection destination path validated: /tmp"
+}
+
+TASK [Display collection configuration for debugging] *****************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Report source path: /tmp/Test-RHEL-7.9-1-fs-report-*.html",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Report source path: /tmp/Test-RHEL-7.9-2-fs-report-*.html",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Report source path: /tmp/Test-RHEL-7.9-3-fs-report-*.html",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Report source path: /tmp/TEST-RHEL-8.9-1-fs-report-*.html",
+        "Collection destination: /tmp"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Report source path: /tmp/ansible25.example.com-fs-report-*.html",
+        "Collection destination: /tmp"
+    ]
+}
+
+TASK [Find report files on remote host] *******************************************************************************************************************************
+ok: [Test-RHEL-7.9-2]
+ok: [Test-RHEL-7.9-1]
+ok: [Test-RHEL-7.9-3]
+ok: [ansible25.example.com]
+ok: [TEST-RHEL-8.9-1]
+
+TASK [Display found report files for debugging] ***********************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Found 2 report file(s)",
+        "Files: ['/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-25-47Z.html', '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-32-56Z.html']"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => {
+    "msg": [
+        "Found 2 report file(s)",
+        "Files: ['/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-22-15Z.html', '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-29-23Z.html']"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Found 2 report file(s)",
+        "Files: ['/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-11-58Z.html', '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-19-03Z.html']"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Found 2 report file(s)",
+        "Files: ['/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-25-48Z.html', '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-32-52Z.html']"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Found 2 report file(s)",
+        "Files: ['/tmp/ansible25.example.com-fs-report-2026-02-04T03-25-47Z.html', '/tmp/ansible25.example.com-fs-report-2026-02-04T03-32-52Z.html']"
+    ]
+}
+
+TASK [Fetch report file from remote host] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => (item={'uid': 0, 'woth': False, 'mtime': 1770175582.498168, 'inode': 33631756, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-25-47Z.html', 'xusr': False, 'atime': 1770175593.9743707, 'isdir': False, 'ctime': 1770175585.2802172, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True})
+ok: [Test-RHEL-7.9-2] => (item={'uid': 0, 'woth': False, 'mtime': 1770175370.2227442, 'inode': 50972562, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-22-15Z.html', 'xusr': False, 'atime': 1770175381.6957443, 'isdir': False, 'ctime': 1770175373.1217442, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True})
+ok: [Test-RHEL-7.9-3] => (item={'uid': 0, 'woth': False, 'mtime': 1770203554.140908, 'inode': 33583008, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-11-58Z.html', 'xusr': False, 'atime': 1770203565.478908, 'isdir': False, 'ctime': 1770203556.7639081, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True})
+ok: [ansible25.example.com] => (item={'path': '/tmp/ansible25.example.com-fs-report-2026-02-04T03-25-47Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7683, 'inode': 102061943, 'dev': 64768, 'nlink': 1, 'atime': 1770175594.3598251, 'mtime': 1770175583.0446258, 'ctime': 1770175586.0226781, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False})
+ok: [TEST-RHEL-8.9-1] => (item={'path': '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-25-48Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7367, 'inode': 71065522, 'dev': 64768, 'nlink': 1, 'atime': 1770175594.302973, 'mtime': 1770175582.964764, 'ctime': 1770175585.99282, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False})
+changed: [Test-RHEL-7.9-1] => (item={'uid': 0, 'woth': False, 'mtime': 1770176010.0467207, 'inode': 860564, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-32-56Z.html', 'xusr': False, 'atime': 1770176012.8607705, 'isdir': False, 'ctime': 1770176012.8617706, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True})
+changed: [Test-RHEL-7.9-2] => (item={'uid': 0, 'woth': False, 'mtime': 1770175797.8767445, 'inode': 17149283, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-29-23Z.html', 'xusr': False, 'atime': 1770175800.6767445, 'isdir': False, 'ctime': 1770175800.6767445, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True})
+changed: [Test-RHEL-7.9-3] => (item={'uid': 0, 'woth': False, 'mtime': 1770203981.8249083, 'inode': 1036, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-19-03Z.html', 'xusr': False, 'atime': 1770203984.7369082, 'isdir': False, 'ctime': 1770203984.7379084, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True})
+changed: [ansible25.example.com] => (item={'path': '/tmp/ansible25.example.com-fs-report-2026-02-04T03-32-52Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7683, 'inode': 34743834, 'dev': 64768, 'nlink': 1, 'atime': 1770176013.6422145, 'mtime': 1770176010.5671604, 'ctime': 1770176013.6422145, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False})
+changed: [TEST-RHEL-8.9-1] => (item={'path': '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-32-52Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7367, 'inode': 7449169, 'dev': 64768, 'nlink': 1, 'atime': 1770176014.5957165, 'mtime': 1770176011.0746515, 'ctime': 1770176014.5997164, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False})
+
+TASK [Display fetch result for debugging] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => (item={'changed': False, 'md5sum': '4c649dabf5324b8dc5b81e53f53a4103', 'file': '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-25-47Z.html', 'dest': '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-25-47Z.html', 'checksum': 'cc4478630384fa80fa417f0058f3b4288089f136', 'failed': False, 'item': {'uid': 0, 'woth': False, 'mtime': 1770175582.498168, 'inode': 33631756, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-25-47Z.html', 'xusr': False, 'atime': 1770175593.9743707, 'isdir': False, 'ctime': 1770175585.2802172, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: False",
+        "Destination: /tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-25-47Z.html"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => (item={'changed': False, 'md5sum': 'e04f530166c57a742ddb7da2bb263f35', 'file': '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-22-15Z.html', 'dest': '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-22-15Z.html', 'checksum': 'e91e5cd6427937963bf4ba28732e5b4ed85f5905', 'failed': False, 'item': {'uid': 0, 'woth': False, 'mtime': 1770175370.2227442, 'inode': 50972562, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-22-15Z.html', 'xusr': False, 'atime': 1770175381.6957443, 'isdir': False, 'ctime': 1770175373.1217442, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: False",
+        "Destination: /tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-22-15Z.html"
+    ]
+}
+ok: [Test-RHEL-7.9-1] => (item={'changed': True, 'md5sum': '28eaef25a5cc5713f24523dc281e19be', 'dest': '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-32-56Z.html', 'remote_md5sum': None, 'checksum': '291134276fee6b14cf520596449242dea535107e', 'remote_checksum': '291134276fee6b14cf520596449242dea535107e', 'failed': False, 'item': {'uid': 0, 'woth': False, 'mtime': 1770176010.0467207, 'inode': 860564, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-32-56Z.html', 'xusr': False, 'atime': 1770176012.8607705, 'isdir': False, 'ctime': 1770176012.8617706, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/Test-RHEL-7.9-1-fs-report-2026-02-04T03-32-56Z.html"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => (item={'changed': False, 'md5sum': '8aca383e95a9f602fba7618c86574f53', 'file': '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-11-58Z.html', 'dest': '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-11-58Z.html', 'checksum': '37275170ac14029e914a1fd892bfd18549b3605d', 'failed': False, 'item': {'uid': 0, 'woth': False, 'mtime': 1770203554.140908, 'inode': 33583008, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-11-58Z.html', 'xusr': False, 'atime': 1770203565.478908, 'isdir': False, 'ctime': 1770203556.7639081, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: False",
+        "Destination: /tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-11-58Z.html"
+    ]
+}
+ok: [Test-RHEL-7.9-2] => (item={'changed': True, 'md5sum': 'c2794e0dba9eeda22a0f44239d8f2166', 'dest': '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-29-23Z.html', 'remote_md5sum': None, 'checksum': '14c4c8f524289d34fa381eec4df5f102574f7874', 'remote_checksum': '14c4c8f524289d34fa381eec4df5f102574f7874', 'failed': False, 'item': {'uid': 0, 'woth': False, 'mtime': 1770175797.8767445, 'inode': 17149283, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-29-23Z.html', 'xusr': False, 'atime': 1770175800.6767445, 'isdir': False, 'ctime': 1770175800.6767445, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/Test-RHEL-7.9-2-fs-report-2026-02-04T03-29-23Z.html"
+    ]
+}
+ok: [Test-RHEL-7.9-3] => (item={'changed': True, 'md5sum': '9996a127daf61e4b1b4ca358f75e04c7', 'dest': '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-19-03Z.html', 'remote_md5sum': None, 'checksum': '000168662d6e54a03f59e70328056fea914abcc1', 'remote_checksum': '000168662d6e54a03f59e70328056fea914abcc1', 'failed': False, 'item': {'uid': 0, 'woth': False, 'mtime': 1770203981.8249083, 'inode': 1036, 'isgid': False, 'size': 6548, 'wgrp': False, 'isuid': False, 'isreg': True, 'pw_name': 'root', 'gid': 0, 'ischr': False, 'wusr': True, 'xoth': False, 'islnk': False, 'nlink': 1, 'issock': False, 'rgrp': True, 'gr_name': 'root', 'path': '/tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-19-03Z.html', 'xusr': False, 'atime': 1770203984.7369082, 'isdir': False, 'ctime': 1770203984.7379084, 'isblk': False, 'xgrp': False, 'dev': 64768, 'roth': True, 'isfifo': False, 'mode': '0644', 'rusr': True}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/Test-RHEL-7.9-3-fs-report-2026-02-04T11-19-03Z.html"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => (item={'changed': False, 'md5sum': '9f31e171c31c94b362e8958b1987dbea', 'file': '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-25-48Z.html', 'dest': '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-25-48Z.html', 'checksum': 'ee9314d3d2850b63fa21a382b5d48073d32f5b22', 'failed': False, 'item': {'path': '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-25-48Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7367, 'inode': 71065522, 'dev': 64768, 'nlink': 1, 'atime': 1770175594.302973, 'mtime': 1770175582.964764, 'ctime': 1770175585.99282, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: False",
+        "Destination: /tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-25-48Z.html"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => (item={'changed': True, 'md5sum': 'e648a181d2bad22d5dcfe8edaaf7ba08', 'dest': '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-32-52Z.html', 'remote_md5sum': None, 'checksum': 'bf2186c2582dae33286a7d0adf2128f7f7e63ec6', 'remote_checksum': 'bf2186c2582dae33286a7d0adf2128f7f7e63ec6', 'failed': False, 'item': {'path': '/tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-32-52Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7367, 'inode': 7449169, 'dev': 64768, 'nlink': 1, 'atime': 1770176014.5957165, 'mtime': 1770176011.0746515, 'ctime': 1770176014.5997164, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/TEST-RHEL-8.9-1-fs-report-2026-02-04T03-32-52Z.html"
+    ]
+}
+ok: [ansible25.example.com] => (item={'changed': False, 'md5sum': '297d65f3bb38217023f1928abaa393c8', 'file': '/tmp/ansible25.example.com-fs-report-2026-02-04T03-25-47Z.html', 'dest': '/tmp/ansible25.example.com-fs-report-2026-02-04T03-25-47Z.html', 'checksum': '8294b18cfb3696b98f56eba201e6a785a599b8a4', 'failed': False, 'item': {'path': '/tmp/ansible25.example.com-fs-report-2026-02-04T03-25-47Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7683, 'inode': 102061943, 'dev': 64768, 'nlink': 1, 'atime': 1770175594.3598251, 'mtime': 1770175583.0446258, 'ctime': 1770175586.0226781, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: False",
+        "Destination: /tmp/ansible25.example.com-fs-report-2026-02-04T03-25-47Z.html"
+    ]
+}
+ok: [ansible25.example.com] => (item={'changed': True, 'md5sum': '068ee51c21539153ad97d85248fbc50e', 'dest': '/tmp/ansible25.example.com-fs-report-2026-02-04T03-32-52Z.html', 'remote_md5sum': None, 'checksum': 'e786c64a58b302b4c1b3f1b2c0f2e242a8dd48c1', 'remote_checksum': 'e786c64a58b302b4c1b3f1b2c0f2e242a8dd48c1', 'failed': False, 'item': {'path': '/tmp/ansible25.example.com-fs-report-2026-02-04T03-32-52Z.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 0, 'gid': 0, 'size': 7683, 'inode': 34743834, 'dev': 64768, 'nlink': 1, 'atime': 1770176013.6422145, 'mtime': 1770176010.5671604, 'ctime': 1770176013.6422145, 'gr_name': 'root', 'pw_name': 'root', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False}, 'ansible_loop_var': 'item'}) => {
+    "msg": [
+        "Report file fetched: True",
+        "Destination: /tmp/ansible25.example.com-fs-report-2026-02-04T03-32-52Z.html"
+    ]
+}
+
+PLAY [Display final summary and confirmation] *************************************************************************************************************************
+
+TASK [Display completion summary] *************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "✅ All filesystem check reports have been successfully collected!",
+        "Reports are stored in the control node's /tmp/ directory.",
+        "Report file naming format: <hostname>-fs-report-<timestamp>.html",
+        "You can review individual reports in a web browser for detailed analysis."
+    ]
+}
+
+TASK [Display next steps] *********************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "Next steps:",
+        "  1. Review individual reports: open /tmp/<hostname>-fs-report-*.html in a web browser",
+        "  2. Check for filesystems with issues (marked with ⚠️)",
+        "  3. Review disk space and inode usage statistics",
+        "  4. Take corrective actions as needed (repair operations require maintenance windows)"
+    ]
+}
+
+PLAY RECAP ************************************************************************************************************************************************************
+TEST-RHEL-8.9-1            : ok=26   changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+Test-RHEL-7.9-1            : ok=26   changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+Test-RHEL-7.9-2            : ok=26   changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+Test-RHEL-7.9-3            : ok=26   changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+ansible25.example.com      : ok=26   changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+localhost                  : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
