@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filesystem Health Report - {{ inventory_hostname }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+        h2 {
+            margin-top: 30px;
+            font-size: 1.5em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+        .status-ok {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .status-problem {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        .status-skipped {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .summary-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .summary-table td {
+            font-weight: bold;
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .summary-table td:first-child {
+            color: #555;
+            font-weight: normal;
+            width: 200px;
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .error-box {
+            background-color: #f8d7da;
+            border-left: 4px solid #c0392b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Filesystem Health Report</h1>
+
+        <table class="summary-table">
+            <tr>
+                <td>Hostname:</td>
+                <td>{{ inventory_hostname }}</td>
+            </tr>
+            <tr>
+                <td>Operating System:</td>
+                <td>{{ ansible_distribution }} {{ ansible_distribution_major_version }}</td>
+            </tr>
+            <tr>
+                <td>Report Generation Time:</td>
+                <td>{{ ansible_date_time.iso8601 }}</td>
+            </tr>
+        </table>
+
+        <div class="info-box">
+            <strong>ℹ️ Note:</strong> This report contains read-only filesystem health checks. 
+            No modifications were made to the filesystems. For repair operations, please 
+            schedule a maintenance window and use appropriate repair tools (xfs_repair, 
+            fsck without -n flag) in rescue mode or single-user mode.
+        </div>
+
+        <h2>I. Disk Space Usage (df -h)</h2>
+        {% if df_output.rc == 0 and df_output.stdout is defined %}
+        <pre>{{ df_output.stdout }}</pre>
+        {% else %}
+        <div class="warning-box">
+            <strong>⚠️ Warning:</strong> Failed to collect disk space information.
+            {% if df_output.stderr is defined %}
+            <pre>{{ df_output.stderr }}</pre>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <h2>II. Inode Usage (df -i)</h2>
+        {% if df_inode_output.rc == 0 and df_inode_output.stdout is defined %}
+        <pre>{{ df_inode_output.stdout }}</pre>
+        {% else %}
+        <div class="warning-box">
+            <strong>⚠️ Warning:</strong> Failed to collect inode usage information.
+            {% if df_inode_output.stderr is defined %}
+            <pre>{{ df_inode_output.stderr }}</pre>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <h2>III. Filesystem Health Check Results</h2>
+        {% if check_results.results is defined and check_results.results | length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Device</th>
+                    <th>Mount Point</th>
+                    <th>Filesystem Type</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in check_results.results %}
+                    {% if item.cmd is defined %}
+                    <tr>
+                        <td>{{ item.item.device | default('N/A') }}</td>
+                        <td>{{ item.item.mount | default('N/A') }}</td>
+                        <td>{{ item.item.fstype | default('N/A') }}</td>
+                        {% if item.rc == 0 %}
+                            <td class="status-ok">✅ OK</td>
+                            <td>No issues detected</td>
+                        {% elif 'SKIPPED' in item.stdout | default('') %}
+                            <td class="status-skipped">⏭️ SKIPPED</td>
+                            <td>{{ item.stdout | default('N/A') }}</td>
+                        {% else %}
+                            <td class="status-problem">⚠️ Issues Found</td>
+                            <td>
+                                <pre style="max-height: 200px; overflow-y: auto;">{{ item.stdout | default('') }}\n{{ item.stderr | default('') }}</pre>
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="warning-box">
+            <strong>⚠️ Warning:</strong> No filesystem check results available. 
+            This may indicate that no filesystems were checked or an error occurred during the check process.
+        </div>
+        {% endif %}
+
+        <div class="info-box" style="margin-top: 30px;">
+            <strong>📋 Summary:</strong>
+            <ul>
+                <li>This report is generated by Ansible filesystem_check role</li>
+                <li>All checks are read-only and safe to run on production systems</li>
+                <li>Review the status column to identify filesystems with issues</li>
+                <li>For filesystems marked with ⚠️, review the details and plan maintenance accordingly</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+
