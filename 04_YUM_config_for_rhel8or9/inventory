@@ -1,0 +1,5 @@
+[server]
+TEST-RHEL-8.9-1
+
+[client]
+10.66.208.248
