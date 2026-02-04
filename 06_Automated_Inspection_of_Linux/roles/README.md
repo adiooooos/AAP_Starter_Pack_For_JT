@@ -4,6 +4,9 @@
 
 This Ansible Role-based solution provides automated service status checking across multiple Linux hosts. It checks the status of critical services (such as `sshd`, `firewalld`, `chronyd`, etc.) and generates detailed reports that are collected back to the control node for centralized analysis.
 
+## Reports
+<img width="1031" height="1318" alt="image" src="https://github.com/user-attachments/assets/7e35e863-f39b-470c-a64a-eccd5e057a69" />
+
 ## Features
 
 - **Role-Based Architecture**: Modular, reusable, and maintainable design
