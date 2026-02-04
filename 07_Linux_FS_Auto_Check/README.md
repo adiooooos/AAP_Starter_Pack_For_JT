@@ -5,8 +5,8 @@
 This Ansible Role-based solution provides automated filesystem health scanning across multiple Linux hosts. It performs read-only filesystem health checks (using `xfs_scrub` for XFS filesystems and `fsck -n` for ext2/3/4 filesystems), collects disk space and inode usage information, and generates comprehensive HTML reports that are collected back to the control node for centralized analysis.
 
 ## Filesystem Health Reports
+<img width="946" height="1243" alt="image" src="https://github.com/user-attachments/assets/94391417-bcde-42d0-8c2d-70521210a05c" />
 
-![1770176185421](image/README/1770176185421.png)
 
 ## Features
 
