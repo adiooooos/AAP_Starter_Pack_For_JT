@@ -1,0 +1,22 @@
+[rhel7]
+Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+
+# Example grouping (optional)
+[caching_dns]
+Test-RHEL-7.9-1
+
+[primary_dns]
+TEST-RHEL-8.9-1
+
+[secondary_dns]
+ansible25.example.com
+
+

@@ -1,0 +1,112 @@
+# ============================================================================
+# Role: unbound_caching_dns
+# ============================================================================
+#
+# Description:
+#   Deploy and configure an Unbound caching DNS server.
+#   - Bulk package install (list)
+#   - Template-based config generation
+#   - Service enable/start
+#   - Optional firewalld rule for DNS service
+#   - block/rescue for critical config changes
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+---
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - unbound_allowed_networks is iterable
+      - unbound_allowed_networks | length > 0
+      - unbound_forwarder_ip is string
+      - unbound_forwarder_ip | length > 0
+      - unbound_insecure_domain is string
+      - unbound_insecure_domain | length > 0
+    fail_msg: "Invalid input variables. Please check Unbound role variables."
+  tags: [validation, always]
+
+- name: Display Unbound role configuration for debugging
+  ansible.builtin.debug:
+    msg:
+      - "unbound_packages: {{ unbound_packages }}"
+      - "unbound_config_dest: {{ unbound_config_dest }}"
+      - "unbound_allowed_networks: {{ unbound_allowed_networks }}"
+      - "unbound_insecure_domain: {{ unbound_insecure_domain }}"
+      - "unbound_forwarder_ip: {{ unbound_forwarder_ip }}"
+  tags: [debug]
+
+- name: Ensure Unbound packages are installed (bulk)
+  ansible.builtin.yum:
+    name: "{{ unbound_packages }}"
+    state: present
+  tags: [install]
+
+- name: Deploy Unbound configuration (critical change)
+  block:
+    - name: Ensure Unbound configuration is present from template
+      ansible.builtin.template:
+        src: "{{ unbound_config_template }}"
+        dest: "{{ unbound_config_dest }}"
+        owner: "{{ unbound_config_owner }}"
+        group: "{{ unbound_config_group }}"
+        mode: "{{ unbound_config_mode }}"
+        setype: "{{ unbound_config_setype }}"
+      notify: Restart unbound
+
+    - name: Verify Unbound configuration file exists
+      ansible.builtin.stat:
+        path: "{{ unbound_config_dest }}"
+      register: unbound_cfg_stat
+      changed_when: false
+
+    - name: Display Unbound configuration file status for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Config file exists: {{ unbound_cfg_stat.stat.exists }}"
+          - "Config file size: {{ unbound_cfg_stat.stat.size | default('n/a') }}"
+  rescue:
+    - name: Report Unbound configuration deployment failure
+      ansible.builtin.debug:
+        msg:
+          - "Failed to deploy Unbound configuration."
+          - "Please check template variables and filesystem permissions."
+    - name: Fail the play explicitly
+      ansible.builtin.fail:
+        msg: "Unbound configuration deployment failed."
+  tags: [config]
+
+- name: Ensure Unbound service is enabled and started
+  ansible.builtin.service:
+    name: "{{ unbound_service_name }}"
+    state: started
+    enabled: true
+  tags: [service]
+
+- name: Configure firewalld for DNS (optional)
+  when: unbound_manage_firewall | bool
+  block:
+    - name: Ensure firewalld allows DNS service
+      ansible.posix.firewalld:
+        service: "{{ unbound_firewalld_service }}"
+        state: enabled
+        immediate: true
+        permanent: true
+
+    - name: Display firewalld configuration for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Firewalld rule applied: service={{ unbound_firewalld_service }}"
+  rescue:
+    - name: Report firewalld configuration warning
+      ansible.builtin.debug:
+        msg:
+          - "Warning: firewalld configuration failed."
+          - "If firewalld is not installed/enabled, you can set unbound_manage_firewall=false."
+  tags: [firewall]
+
+

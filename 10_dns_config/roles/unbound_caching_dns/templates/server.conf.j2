@@ -1,0 +1,22 @@
+# Ansible-generated Unbound configuration
+# This file is managed by Ansible. Do not edit manually.
+
+server:
+    # Listen on all IPv4 and IPv6 interfaces
+    interface: 0.0.0.0
+    interface: ::0
+    interface-automatic: yes
+
+    # Allow recursive queries from specified networks
+    {% for network in unbound_allowed_networks %}
+    access-control: {{ network }} allow
+    {% endfor %}
+
+    # Do not perform DNSSEC validation for internal domain
+    domain-insecure: "{{ unbound_insecure_domain }}"
+
+forward-zone:
+    name: "."
+    forward-addr: {{ unbound_forwarder_ip }}
+
+

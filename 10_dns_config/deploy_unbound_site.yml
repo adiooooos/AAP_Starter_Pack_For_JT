@@ -1,0 +1,44 @@
+# ============================================================================
+# Playbook: Deploy and Configure Unbound Caching DNS
+# ============================================================================
+#
+# Description:
+#   Deploy and configure an Unbound caching DNS server with a Jinja2 template.
+#   Includes OS compatibility assertions, parameter validation, and robust
+#   error handling for critical changes.
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+---
+- name: Deploy and configure Unbound caching DNS servers
+  hosts: caching_dns
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags: [always]
+
+    - name: Show host facts for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      tags: [debug, always]
+
+  roles:
+    - role: unbound_caching_dns
+
+

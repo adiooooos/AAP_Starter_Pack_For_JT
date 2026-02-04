@@ -1,0 +1,132 @@
+# ============================================================================
+# Role: bind_primary_dns
+# ============================================================================
+#
+# Description:
+#   Deploy and configure a BIND primary DNS server.
+#   - Bulk package install (list)
+#   - Copy named.conf and zone files from role files/
+#   - Service enable/start
+#   - Optional firewalld rule for DNS service
+#   - block/rescue for critical config changes
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+---
+- name: Display BIND primary role configuration for debugging
+  ansible.builtin.debug:
+    msg:
+      - "bind_primary_packages: {{ bind_primary_packages }}"
+      - "bind_config_dest: {{ bind_config_dest }}"
+      - "bind_zone_dest_dir: {{ bind_zone_dest_dir }}"
+      - "bind_manage_firewall: {{ bind_manage_firewall }}"
+  tags: [debug]
+
+- name: Ensure BIND packages are installed (bulk)
+  ansible.builtin.yum:
+    name: "{{ bind_primary_packages }}"
+    state: present
+  tags: [install]
+
+- name: Deploy named.conf for primary (critical change)
+  block:
+    - name: Ensure primary named.conf is present
+      ansible.builtin.copy:
+        src: named-primary.conf
+        dest: "{{ bind_config_dest }}"
+        owner: "{{ bind_config_owner }}"
+        group: "{{ bind_config_group }}"
+        mode: "{{ bind_config_mode }}"
+        setype: "{{ bind_config_setype }}"
+      notify: Restart named
+
+    - name: Show named.conf deployment result for debugging
+      ansible.builtin.stat:
+        path: "{{ bind_config_dest }}"
+      register: bind_named_conf_stat
+      changed_when: false
+
+    - name: Display named.conf file status for debugging
+      ansible.builtin.debug:
+        msg:
+          - "named.conf exists: {{ bind_named_conf_stat.stat.exists }}"
+          - "named.conf size: {{ bind_named_conf_stat.stat.size | default('n/a') }}"
+  rescue:
+    - name: Report named.conf deployment failure
+      ansible.builtin.debug:
+        msg:
+          - "Failed to deploy named.conf for primary."
+          - "Check permissions, SELinux, and file content."
+    - name: Fail the play explicitly
+      ansible.builtin.fail:
+        msg: "Primary named.conf deployment failed."
+  tags: [config]
+
+- name: Deploy zone files for primary (critical change)
+  block:
+    - name: Ensure zone files are present
+      ansible.builtin.copy:
+        src: "{{ bind_zone_src_dir }}/"
+        dest: "{{ bind_zone_dest_dir }}"
+        owner: "{{ bind_zone_owner }}"
+        group: "{{ bind_zone_group }}"
+        mode: "{{ bind_zone_mode }}"
+        setype: "{{ bind_zone_setype }}"
+      notify: Reload named
+
+    - name: Display a sample zone file stat for debugging
+      ansible.builtin.stat:
+        path: "{{ bind_zone_dest_dir }}/pvt.example.com.zone"
+      register: bind_zone_stat
+      changed_when: false
+
+    - name: Debug zone file status
+      ansible.builtin.debug:
+        msg:
+          - "Zone file exists: {{ bind_zone_stat.stat.exists }}"
+          - "Zone file size: {{ bind_zone_stat.stat.size | default('n/a') }}"
+  rescue:
+    - name: Report zone files deployment failure
+      ansible.builtin.debug:
+        msg:
+          - "Failed to deploy zone files."
+          - "Check permissions, SELinux contexts, and destination directory."
+    - name: Fail the play explicitly
+      ansible.builtin.fail:
+        msg: "Primary zone files deployment failed."
+  tags: [zones]
+
+- name: Ensure named service is enabled and started
+  ansible.builtin.service:
+    name: "{{ bind_service_name }}"
+    state: started
+    enabled: true
+  tags: [service]
+
+- name: Configure firewalld for DNS (optional)
+  when: bind_manage_firewall | bool
+  block:
+    - name: Ensure firewalld allows DNS service
+      ansible.posix.firewalld:
+        service: "{{ bind_firewalld_service }}"
+        state: enabled
+        immediate: true
+        permanent: true
+    - name: Display firewalld configuration for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Firewalld rule applied: service={{ bind_firewalld_service }}"
+  rescue:
+    - name: Report firewalld configuration warning
+      ansible.builtin.debug:
+        msg:
+          - "Warning: firewalld configuration failed."
+          - "If firewalld is not installed/enabled, set bind_manage_firewall=false."
+  tags: [firewall]
+
+

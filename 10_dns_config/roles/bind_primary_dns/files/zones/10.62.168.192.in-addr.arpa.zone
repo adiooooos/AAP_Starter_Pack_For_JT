@@ -1,0 +1,23 @@
+; Ansible-managed BIND Reverse Zone File
+;
+$TTL 3600
+@   IN  SOA     instructor.pvt.example.com. root.pvt.example.com. (
+                2024010101  ; Serial
+                1H          ; Refresh
+                15M         ; Retry
+                1W          ; Expire
+                1H )        ; Negative Cache TTL
+;
+; Name Servers
+@   IN  NS      instructor.pvt.example.com.
+@   IN  NS      ns1.pvt.example.com.
+
+; PTR Records for Name Servers and Hosts
+10  IN  PTR     instructor.pvt.example.com.
+11  IN  PTR     ns1.pvt.example.com.
+12  IN  PTR     ns2.pvt.example.com.
+20  IN  PTR     dns1.pvt.example.com.
+21  IN  PTR     dns2.pvt.example.com.
+100 IN  PTR     workstation.pvt.example.com.
+
+

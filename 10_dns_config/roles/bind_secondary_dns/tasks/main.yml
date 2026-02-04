@@ -1,0 +1,97 @@
+# ============================================================================
+# Role: bind_secondary_dns
+# ============================================================================
+#
+# Description:
+#   Deploy and configure a BIND secondary DNS server.
+#   - Bulk package install (list)
+#   - Copy secondary named.conf
+#   - Service enable/start
+#   - Optional firewalld rule for DNS service
+#   - block/rescue for critical config changes
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+---
+- name: Display BIND secondary role configuration for debugging
+  ansible.builtin.debug:
+    msg:
+      - "bind_secondary_packages: {{ bind_secondary_packages }}"
+      - "bind_config_dest: {{ bind_config_dest }}"
+      - "bind_manage_firewall: {{ bind_manage_firewall }}"
+  tags: [debug]
+
+- name: Ensure BIND packages are installed (bulk)
+  ansible.builtin.yum:
+    name: "{{ bind_secondary_packages }}"
+    state: present
+  tags: [install]
+
+- name: Deploy named.conf for secondary (critical change)
+  block:
+    - name: Ensure secondary named.conf is present
+      ansible.builtin.copy:
+        src: named-secondary.conf
+        dest: "{{ bind_config_dest }}"
+        owner: "{{ bind_config_owner }}"
+        group: "{{ bind_config_group }}"
+        mode: "{{ bind_config_mode }}"
+        setype: "{{ bind_config_setype }}"
+      notify: Restart named
+
+    - name: Show named.conf deployment result for debugging
+      ansible.builtin.stat:
+        path: "{{ bind_config_dest }}"
+      register: bind_named_conf_stat
+      changed_when: false
+
+    - name: Display named.conf file status for debugging
+      ansible.builtin.debug:
+        msg:
+          - "named.conf exists: {{ bind_named_conf_stat.stat.exists }}"
+          - "named.conf size: {{ bind_named_conf_stat.stat.size | default('n/a') }}"
+  rescue:
+    - name: Report named.conf deployment failure
+      ansible.builtin.debug:
+        msg:
+          - "Failed to deploy named.conf for secondary."
+          - "Check permissions, SELinux, and file content."
+    - name: Fail the play explicitly
+      ansible.builtin.fail:
+        msg: "Secondary named.conf deployment failed."
+  tags: [config]
+
+- name: Ensure named service is enabled and started
+  ansible.builtin.service:
+    name: "{{ bind_service_name }}"
+    state: started
+    enabled: true
+  tags: [service]
+
+- name: Configure firewalld for DNS (optional)
+  when: bind_manage_firewall | bool
+  block:
+    - name: Ensure firewalld allows DNS service
+      ansible.posix.firewalld:
+        service: "{{ bind_firewalld_service }}"
+        state: enabled
+        immediate: true
+        permanent: true
+    - name: Display firewalld configuration for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Firewalld rule applied: service={{ bind_firewalld_service }}"
+  rescue:
+    - name: Report firewalld configuration warning
+      ansible.builtin.debug:
+        msg:
+          - "Warning: firewalld configuration failed."
+          - "If firewalld is not installed/enabled, set bind_manage_firewall=false."
+  tags: [firewall]
+
+

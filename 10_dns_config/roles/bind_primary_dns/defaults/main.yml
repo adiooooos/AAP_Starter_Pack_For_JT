@@ -1,0 +1,26 @@
+---
+bind_primary_packages:
+  - bind
+
+bind_service_name: named
+
+# Config paths
+bind_config_dest: /etc/named.conf
+bind_config_owner: root
+bind_config_group: named
+bind_config_mode: "0640"
+bind_config_setype: named_conf_t
+
+# Zone directory
+bind_zone_src_dir: zones
+bind_zone_dest_dir: /var/named/
+bind_zone_owner: root
+bind_zone_group: named
+bind_zone_mode: "0640"
+bind_zone_setype: named_zone_t
+
+# Firewalld
+bind_manage_firewall: true
+bind_firewalld_service: dns
+
+
