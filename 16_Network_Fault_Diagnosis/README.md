@@ -3,6 +3,8 @@
 ## Overview
 
 This Ansible playbook automates network latency diagnosis for RHEL systems, providing comprehensive network troubleshooting capabilities including interface status checks, system-level diagnostics, traffic capture, and detailed reporting.
+### Test reports
+<img width="1114" height="1006" alt="image" src="https://github.com/user-attachments/assets/13e2cf29-922a-40c8-98bb-d01cfc79cfd9" />
 
 **Key Feature**: All configuration parameters are centralized in `group_vars/all.yml`, making it easy to customize the playbook for your specific environment without modifying the playbook code itself.
 
@@ -688,3 +690,4 @@ For issues or questions, please refer to the troubleshooting section or contact 
 - Four core diagnostic roles
 - Comprehensive error handling
 - Tested and verified on RHEL 7.9
+
