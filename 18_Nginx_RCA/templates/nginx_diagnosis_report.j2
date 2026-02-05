@@ -1,0 +1,61 @@
+==================== RHEL7/8/9 & CentOS7/8/9 Nginx Diagnosis Report ====================
+Generated at: {{ ansible_date_time.iso8601 }}
+Target host: {{ inventory_hostname }}
+
+[Basic Information]
+- OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+- Kernel: {{ ansible_kernel }}
+- SELinux mode: {{ selinux_mode.stdout | default('unknown') }}
+
+[Package and Service Status]
+- nginx package installed: {{ 'yes' if rpm_query.rc == 0 else 'no' }}
+- systemd active state: {{ svc_active.stdout | default('unknown') }}
+- systemd enabled state: {{ svc_enabled.stdout | default('unknown') }}
+
+[Configuration Syntax Check]
+- nginx -t: rc={{ nginx_syntax.rc }}, output:
+{{ (nginx_syntax.stdout + ' ' + nginx_syntax.stderr) | trim }}
+
+[Configuration and Directory Permissions]
+- nginx.conf path: {{ nginx_conf_path }}
+- nginx.conf exists: {{ nginx_conf_stat.stat.exists | default(false) }}
+- nginx config directory ({{ nginx_config_dir }}) mode: {{ nginx_conf_dir_stat.stat.mode | default('unknown') }}
+- nginx work directory ({{ nginx_work_dir }}) mode: {{ nginx_work_dir_stat.stat.mode | default('unknown') }}
+- nginx website directory ({{ nginx_website_dir }}) mode: {{ nginx_website_dir_stat.stat.mode | default('unknown') }}
+
+[Network Ports and Firewall]
+- Expected ports: {{ (nginx_expected_ports | map('string')) | join(', ') }}
+- ss -lntp (excerpt):
+{{ ss_listen.stdout | default('') }}
+- firewalld state: {{ firewalld_state.stdout | default('unknown') }}
+- firewalld services: {{ firewalld_services.stdout | default('') }}
+- firewalld ports: {{ firewalld_ports.stdout | default('') }}
+
+[SELinux Booleans]
+{% for r in selinux_booleans.results | default([]) %}
+- {{ r.item }}: {{ r.stdout | default('unknown') }}
+{% endfor %}
+
+[Logs]
+- Error log path: {{ nginx_error_log | default('N/A') }}
+- Error log tail:
+{{ nginx_error_tail.stdout | default('No error log collected or file not found.') }}
+
+- Access log path: {{ nginx_access_log | default('N/A') }}
+- Access log tail:
+{{ nginx_access_tail.stdout | default('No access log collected or file not found.') }}
+
+[Recent journalctl Entries for nginx]
+{{ nginx_journal.stdout | default('No journal entries collected.') }}
+
+[Common Troubleshooting Hints]
+- Syntax errors: Non-zero return code from "nginx -t" usually indicates configuration syntax or path issues.
+- Port conflicts: If ports 80/443 are occupied by non-nginx processes in "ss -lntp", free the ports or change the listening port.
+- SELinux: If access is denied, check AVC logs and adjust SELinux booleans or contexts accordingly.
+- Firewall: Ensure http/https services or ports are allowed in firewalld.
+- Permissions: Incorrect permissions or SELinux contexts on config, work or website directories may cause 4xx/5xx errors.
+- Processes: Verify that the nginx master and worker processes are running as expected.
+
+===============================================================================
+
+

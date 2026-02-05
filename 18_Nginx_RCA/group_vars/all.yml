@@ -1,0 +1,55 @@
+---
+# Global Variables Configuration - Nginx Service Diagnosis
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+
+# Target host group name (must match inventory)
+target_group: web
+
+# Service and package configuration
+nginx_service: nginx
+nginx_package: nginx
+
+# Port configuration (adjustable as needed)
+http_ports:
+  - 80
+https_ports:
+  - 443
+
+# Expected ports for nginx (combined list for reporting)
+nginx_expected_ports: "{{ http_ports + https_ports }}"
+
+# Log and report configuration
+nginx_error_log: /var/log/nginx/error.log
+nginx_access_log: /var/log/nginx/access.log
+nginx_work_dir: /var/lib/nginx
+nginx_config_dir: /etc/nginx
+nginx_website_dir: /usr/share/nginx/html
+collect_journal_lines: 200
+report_output_path: /root/nginx_diagnosis_report.txt
+
+# Service start attempt configuration
+# Set to true if you want to attempt starting the service to capture errors
+# Default: false (analysis-only mode, no changes)
+attempt_service_start: false
+
+# SELinux boolean checks
+selinux_booleans_to_check:
+  - httpd_can_network_connect
+  - httpd_can_network_connect_db
+  - httpd_can_sendmail
+  - httpd_use_cifs
+  - httpd_use_nfs
+
+# Firewall service names to check
+firewall_services_to_check:
+  - http
+  - https
+
+# Configuration file paths
+nginx_conf_path: /etc/nginx/nginx.conf
+nginx_conf_d_path: /etc/nginx/conf.d
+
+# Performance and timeout configuration
+command_timeout: 30
+retry_attempts: 3
+

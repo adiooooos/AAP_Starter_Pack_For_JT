@@ -1,0 +1,262 @@
+---
+# =============================================================================
+# RHEL7/8/9 & CentOS7/8/9 Nginx Service Fault Automatic Diagnosis
+#
+# This playbook performs a non-intrusive, read-only health check for Nginx:
+# - OS compatibility assertion (RHEL/CentOS 7/8/9 only)
+# - Package & systemd service status
+# - Configuration syntax validation (nginx -t)
+# - Port listening & firewalld state
+# - SELinux mode and selected SELinux booleans
+# - Key directory and file permission checks
+# - Optional log and journal collection (if paths/commands are available)
+# - Final consolidated text report via Jinja2 template
+#
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+#
+# 📜 License Type: End User License Agreement (EULA)
+# 🔒 License Model: Subscription-based authorization
+# =============================================================================
+
+- name: RHEL7/8/9 & CentOS7/8/9 Nginx Service Fault Automatic Diagnosis
+  hosts: "{{ target_group | default('web') }}"
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Assert supported operating system (RHEL/CentOS 7/8/9 only)
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ['RedHat', 'CentOS']
+          - ansible_distribution_major_version in ['7', '8', '9']
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        quiet: true
+
+    - name: Assert required variables are defined
+      ansible.builtin.assert:
+        that:
+          - nginx_service is defined
+          - nginx_package is defined
+          - http_ports is defined
+          - https_ports is defined
+          - report_output_path is defined
+        fail_msg: "Required variables (nginx_service, nginx_package, http_ports, https_ports, report_output_path) must be defined."
+        quiet: true
+
+    - name: Debug OS and baseline variables
+      ansible.builtin.debug:
+        msg:
+          os_distribution: "{{ ansible_distribution }}"
+          os_version: "{{ ansible_distribution_version }}"
+          nginx_service: "{{ nginx_service }}"
+          nginx_package: "{{ nginx_package }}"
+          http_ports: "{{ http_ports | default([]) }}"
+          https_ports: "{{ https_ports | default([]) }}"
+          report_output_path: "{{ report_output_path }}"
+
+  tasks:
+    # -----------------------------------------------------------------------
+    # SELinux basic mode and boolean status
+    # -----------------------------------------------------------------------
+    - name: Collect SELinux mode (non-fatal)
+      ansible.builtin.command: getenforce
+      register: selinux_mode
+      changed_when: false
+      failed_when: false
+
+    - name: Collect SELinux booleans (non-fatal)
+      ansible.builtin.command: "getsebool {{ item }}"
+      loop: "{{ selinux_booleans_to_check | default([]) }}"
+      register: selinux_booleans
+      changed_when: false
+      failed_when: false
+
+    - name: Debug SELinux information
+      ansible.builtin.debug:
+        msg:
+          selinux_mode: "{{ selinux_mode.stdout | default('unknown') }}"
+          selinux_rc: "{{ selinux_mode.rc | default('N/A') }}"
+          selinux_booleans_raw: "{{ selinux_booleans.results | default([]) }}"
+
+    # -----------------------------------------------------------------------
+    # Package, service and basic configuration checks
+    # -----------------------------------------------------------------------
+    - name: Gather service facts (non-fatal)
+      ansible.builtin.service_facts:
+      failed_when: false
+
+    - name: Check if nginx package is installed (rpm -q)
+      ansible.builtin.command: "rpm -q {{ nginx_package }}"
+      register: rpm_query
+      changed_when: false
+      failed_when: false
+
+    - name: Check nginx active state (systemctl is-active)
+      ansible.builtin.command: "systemctl is-active {{ nginx_service }}"
+      register: svc_active
+      changed_when: false
+      failed_when: false
+
+    - name: Check nginx enabled state (systemctl is-enabled)
+      ansible.builtin.command: "systemctl is-enabled {{ nginx_service }}"
+      register: svc_enabled
+      changed_when: false
+      failed_when: false
+
+    - name: Debug package and service status
+      ansible.builtin.debug:
+        msg:
+          nginx_package_installed: "{{ 'yes' if rpm_query.rc == 0 else 'no' }}"
+          nginx_service_active: "{{ svc_active.stdout | default('unknown') }}"
+          nginx_service_enabled: "{{ svc_enabled.stdout | default('unknown') }}"
+          rpm_query_rc: "{{ rpm_query.rc }}"
+          svc_active_rc: "{{ svc_active.rc | default('N/A') }}"
+          svc_enabled_rc: "{{ svc_enabled.rc | default('N/A') }}"
+
+    # -----------------------------------------------------------------------
+    # Configuration syntax, paths and directory permissions
+    # -----------------------------------------------------------------------
+    - name: Validate nginx configuration syntax (nginx -t)
+      ansible.builtin.command: "/usr/sbin/nginx -t"
+      register: nginx_syntax
+      changed_when: false
+      failed_when: false
+
+    - name: Check nginx.conf existence
+      ansible.builtin.stat:
+        path: "{{ nginx_conf_path }}"
+      register: nginx_conf_stat
+
+    - name: Check nginx config directory permissions
+      ansible.builtin.stat:
+        path: "{{ nginx_config_dir }}"
+      register: nginx_conf_dir_stat
+
+    - name: Check nginx work directory permissions
+      ansible.builtin.stat:
+        path: "{{ nginx_work_dir }}"
+      register: nginx_work_dir_stat
+
+    - name: Check nginx website directory permissions
+      ansible.builtin.stat:
+        path: "{{ nginx_website_dir }}"
+      register: nginx_website_dir_stat
+
+    - name: Debug configuration and directory checks
+      ansible.builtin.debug:
+        msg:
+          nginx_t_rc: "{{ nginx_syntax.rc }}"
+          nginx_t_output: "{{ (nginx_syntax.stdout + ' ' + nginx_syntax.stderr) | trim }}"
+          nginx_conf_exists: "{{ nginx_conf_stat.stat.exists | default(false) }}"
+          nginx_conf_dir_mode: "{{ nginx_conf_dir_stat.stat.mode | default('unknown') }}"
+          nginx_work_dir_mode: "{{ nginx_work_dir_stat.stat.mode | default('unknown') }}"
+          nginx_website_dir_mode: "{{ nginx_website_dir_stat.stat.mode | default('unknown') }}"
+
+    # -----------------------------------------------------------------------
+    # Network ports and firewalld
+    # -----------------------------------------------------------------------
+    - name: Build expected nginx ports list
+      ansible.builtin.set_fact:
+        nginx_expected_ports: "{{ (http_ports | default([])) + (https_ports | default([])) }}"
+
+    - name: Collect listening sockets (ss -lntp)
+      ansible.builtin.command: "ss -lntp"
+      register: ss_listen
+      changed_when: false
+      failed_when: false
+
+    - name: Check firewalld state (if present)
+      ansible.builtin.command: "systemctl is-active firewalld"
+      register: firewalld_state
+      changed_when: false
+      failed_when: false
+
+    - name: List firewalld allowed services (non-fatal)
+      ansible.builtin.command: "firewall-cmd --list-services"
+      register: firewalld_services
+      changed_when: false
+      failed_when: false
+
+    - name: List firewalld open ports (non-fatal)
+      ansible.builtin.command: "firewall-cmd --list-ports"
+      register: firewalld_ports
+      changed_when: false
+      failed_when: false
+
+    - name: Debug ports and firewall state
+      ansible.builtin.debug:
+        msg:
+          expected_ports: "{{ nginx_expected_ports | default([]) }}"
+          ss_rc: "{{ ss_listen.rc | default('N/A') }}"
+          firewalld_state: "{{ firewalld_state.stdout | default('unknown') }}"
+          firewalld_services: "{{ firewalld_services.stdout | default('') }}"
+          firewalld_ports: "{{ firewalld_ports.stdout | default('') }}"
+
+    # -----------------------------------------------------------------------
+    # Optional service start attempt (non-fatal, controlled by variable)
+    # -----------------------------------------------------------------------
+    - block:
+        - name: Optionally attempt to start nginx service (non-fatal)
+          ansible.builtin.service:
+            name: "{{ nginx_service }}"
+            state: started
+          when: attempt_service_start | default(false) | bool
+          register: nginx_start_attempt
+      rescue:
+        - name: Debug service start failure (captured in block/rescue)
+          ansible.builtin.debug:
+            msg: "Attempt to start {{ nginx_service }} failed, but execution will continue for diagnostics."
+      always:
+        - name: Debug nginx start attempt result
+          ansible.builtin.debug:
+            msg:
+              attempt_service_start: "{{ attempt_service_start | default(false) | bool }}"
+              nginx_start_changed: "{{ nginx_start_attempt.changed | default(false) }}"
+              nginx_start_failed: "{{ nginx_start_attempt.failed | default(false) }}"
+
+    # -----------------------------------------------------------------------
+    # Logs and journal collection (non-fatal checks)
+    # -----------------------------------------------------------------------
+    - name: Collect nginx error log tail (if path is defined)
+      ansible.builtin.command: "tail -n {{ collect_journal_lines | default(200) }} {{ nginx_error_log }}"
+      register: nginx_error_tail
+      changed_when: false
+      failed_when: false
+      when: nginx_error_log is defined
+
+    - name: Collect nginx access log tail (if path is defined)
+      ansible.builtin.command: "tail -n {{ collect_journal_lines | default(200) }} {{ nginx_access_log }}"
+      register: nginx_access_tail
+      changed_when: false
+      failed_when: false
+      when: nginx_access_log is defined
+
+    - name: Collect recent journal entries for nginx service
+      ansible.builtin.command: "journalctl -u {{ nginx_service }} -n {{ collect_journal_lines | default(200) }}"
+      register: nginx_journal
+      changed_when: false
+      failed_when: false
+
+    - name: Debug log and journal collection status
+      ansible.builtin.debug:
+        msg:
+          error_log_collected: "{{ (nginx_error_tail.rc is defined) and (nginx_error_tail.rc == 0) | default(false) }}"
+          access_log_collected: "{{ (nginx_access_tail.rc is defined) and (nginx_access_tail.rc == 0) | default(false) }}"
+          journal_rc: "{{ nginx_journal.rc | default('N/A') }}"
+
+    # -----------------------------------------------------------------------
+    # Final report generation
+    # -----------------------------------------------------------------------
+    - name: Render consolidated Nginx diagnosis report
+      ansible.builtin.template:
+        src: templates/nginx_diagnosis_report.j2
+        dest: "{{ report_output_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Debug final report path
+      ansible.builtin.debug:
+        msg: "Nginx diagnosis report has been generated at: {{ report_output_path }}"
+
+
