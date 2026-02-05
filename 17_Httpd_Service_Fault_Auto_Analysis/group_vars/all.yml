@@ -1,0 +1,52 @@
+---
+# Global Variables Configuration - Httpd Service Diagnosis
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+
+# Target host group name (must match inventory)
+target_group: web
+
+# Service and package configuration
+httpd_service: httpd
+httpd_package: httpd
+
+# Port configuration (adjustable as needed)
+http_ports:
+  - 80
+https_ports:
+  - 443
+
+# Expected ports for httpd (combined list for reporting)
+httpd_expected_ports: "{{ http_ports + https_ports }}"
+
+# Log and report configuration
+httpd_error_log: /var/log/httpd/error_log
+httpd_access_log: /var/log/httpd/access_log
+collect_journal_lines: 200
+report_output_path: /root/httpd_diagnosis_report.txt
+
+# Service start attempt configuration
+# Set to true if you want to attempt starting the service to capture errors
+# Default: false (analysis-only mode, no changes)
+attempt_service_start: false
+
+# SELinux boolean checks
+selinux_booleans_to_check:
+  - httpd_can_network_connect
+  - httpd_can_network_connect_db
+  - httpd_can_sendmail
+  - httpd_use_cifs
+  - httpd_use_nfs
+
+# Firewall service names to check
+firewall_services_to_check:
+  - http
+  - https
+
+# Configuration file paths
+httpd_conf_path: /etc/httpd/conf/httpd.conf
+httpd_conf_d_path: /etc/httpd/conf.d
+
+# Performance and timeout configuration
+command_timeout: 30
+retry_attempts: 3
+
