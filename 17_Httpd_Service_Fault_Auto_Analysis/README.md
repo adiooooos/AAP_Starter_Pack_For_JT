@@ -4,6 +4,10 @@
 
 This Ansible playbook automates comprehensive httpd service fault diagnosis for RHEL/CentOS systems, providing systematic troubleshooting capabilities including package status checks, service state analysis, configuration validation, network port diagnostics, security policy verification, and detailed reporting.
 
+### screenshots
+<img width="2510" height="1333" alt="image" src="https://github.com/user-attachments/assets/c03d88c9-f56b-4e97-8b39-0ac32866f1d5" />
+
+
 **Key Feature**: All configuration parameters are centralized in `group_vars/all.yml`, making it easy to customize the playbook for your specific environment without modifying the playbook code itself.
 
 ## Features
@@ -434,4 +438,5 @@ For issues, questions, or contributions, please refer to the development guideli
 ---
 
 **Author**: GCG AAP SSA Team + v3.01 Date 20260217
+
 
