@@ -1,0 +1,24 @@
+[ftp_servers]
+# Example FTP server hosts (RHEL/CentOS 7/8/9)
+# ftp-server1.example.com
+# 10.66.208.232
+Test-RHEL-7.9-3
+
+[ftp_clients]
+# Example FTP client hosts (RHEL/CentOS 7/8/9)
+# ftp-client1.example.com
+Test-RHEL-7.9-1
+
+# Standard groups from the development guide (for reference)
+[rhel7]
+Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+
+

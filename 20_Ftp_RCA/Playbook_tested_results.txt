@@ -1,0 +1,309 @@
+# Diagnose only FTP servers
+[root@aap25 20_Ftp_RCA]# ansible-playbook -i inventory troubleshooting02_ftp.yml -e target_group=ftp_servers
+[DEPRECATION WARNING]: community.general.yaml has been deprecated. The plugin has been superseded by the the option `result_format=yaml` in callback plugin
+ansible.builtin.default from ansible-core 2.13 onwards. This feature will be removed from community.general in version 13.0.0. Deprecation warnings can be disabled by
+setting deprecation_warnings=False in ansible.cfg.
+
+PLAY [RHEL7/8/9 & CentOS7/8/9 FTP Service Fault Automatic Diagnosis] ***************************************************************************************************
+
+TASK [Assert supported operating system (RHEL/CentOS 7/8/9 only)] ******************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Assert required variables are defined] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Debug OS and baseline variables] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] =>
+  msg:
+    ftp_package: vsftpd
+    ftp_ping_count: 2
+    ftp_ports:
+    - 21
+    ftp_service: vsftpd
+    ftp_test_timeout: 5
+    os_distribution: RedHat
+    os_version: '7.9'
+    report_output_path: /root/ftp_diagnosis_report.txt
+
+TASK [Gather service facts (server-side, non-fatal)] *******************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check if FTP package is installed (rpm -q) - server] *************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check FTP service active state (systemctl is-active) - server] ***************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check FTP service enabled state (systemctl is-enabled) - server] *************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Build FTP ports list to check - server] **************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Collect listening sockets for FTP ports (ss -tulpn) - server] ****************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Extract listening info per FTP port - server] ********************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Debug FTP package, service and port status - server] *************************************************************************************************************
+ok: [Test-RHEL-7.9-3] =>
+  msg:
+    ftp_expected_ports:
+    - 21
+    ftp_package_installed: 'yes'
+    ftp_rpm_query_rc: '0'
+    ftp_service_active: unknown
+    ftp_service_enabled: disabled
+    ftp_svc_active_rc: '3'
+    ftp_svc_enabled_rc: '1'
+    ss_listen_rc: '0'
+
+TASK [Check basic firewall status (firewalld or iptables) - server] ****************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check vsftpd main configuration file existence - server] *********************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check vsftpd anonymous_enable setting (if config exists) - server] ***********************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Debug vsftpd configuration - server] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] =>
+  msg:
+    vsftpd_anonymous_enable_line: /etc/vsftpd/vsftpd.conf:anonymous_enable=YES
+    vsftpd_conf_exists: true
+
+TASK [Optionally attempt to start FTP service (non-fatal) - server] ****************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Debug FTP service start attempt result] **************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] =>
+  msg:
+    attempt_service_start: false
+    ftp_start_changed: false
+    ftp_start_failed: false
+
+TASK [Prepare FTP server address list (for client connectivity tests)] *************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Client ping test to each FTP server] *****************************************************************************************************************************
+skipping: [Test-RHEL-7.9-3] => (item=Test-RHEL-7.9-3)
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Client TCP connectivity test to each FTP server (first FTP port)] ************************************************************************************************
+skipping: [Test-RHEL-7.9-3] => (item=Test-RHEL-7.9-3)
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Debug FTP client connectivity results] ***************************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Collect recent journal entries for FTP service] ******************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Debug FTP journal collection status] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] =>
+  msg:
+    journal_rc: '0'
+
+TASK [Render consolidated FTP diagnosis report] ************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+
+TASK [Debug final report path] *****************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] =>
+  msg: 'FTP diagnosis report has been generated at: /root/ftp_diagnosis_report.txt'
+
+PLAY RECAP *************************************************************************************************************************************************************
+Test-RHEL-7.9-3            : ok=20   changed=1    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+
+
+# Diagnose only FTP clients  
+[root@aap25 20_Ftp_RCA]# ansible-playbook -i inventory troubleshooting02_ftp.yml -e target_group=ftp_clients
+[DEPRECATION WARNING]: community.general.yaml has been deprecated. The plugin has been superseded by the the option `result_format=yaml` in callback plugin
+ansible.builtin.default from ansible-core 2.13 onwards. This feature will be removed from community.general in version 13.0.0. Deprecation warnings can be disabled by
+setting deprecation_warnings=False in ansible.cfg.
+
+PLAY [RHEL7/8/9 & CentOS7/8/9 FTP Service Fault Automatic Diagnosis] ***************************************************************************************************
+
+TASK [Assert supported operating system (RHEL/CentOS 7/8/9 only)] ******************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Assert required variables are defined] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Debug OS and baseline variables] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    ftp_package: vsftpd
+    ftp_ping_count: 2
+    ftp_ports:
+    - 21
+    ftp_service: vsftpd
+    ftp_test_timeout: 5
+    os_distribution: RedHat
+    os_version: '7.9'
+    report_output_path: /root/ftp_diagnosis_report.txt
+
+TASK [Gather service facts (server-side, non-fatal)] *******************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Check if FTP package is installed (rpm -q) - server] *************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Check FTP service active state (systemctl is-active) - server] ***************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Check FTP service enabled state (systemctl is-enabled) - server] *************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Build FTP ports list to check - server] **************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Collect listening sockets for FTP ports (ss -tulpn) - server] ****************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Extract listening info per FTP port - server] ********************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Debug FTP package, service and port status - server] *************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Check basic firewall status (firewalld or iptables) - server] ****************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Check vsftpd main configuration file existence - server] *********************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Check vsftpd anonymous_enable setting (if config exists) - server] ***********************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Debug vsftpd configuration - server] *****************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Optionally attempt to start FTP service (non-fatal) - server] ****************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Debug FTP service start attempt result] **************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    attempt_service_start: false
+    ftp_start_changed: false
+    ftp_start_failed: false
+
+TASK [Prepare FTP server address list (for client connectivity tests)] *************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Client ping test to each FTP server] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => (item=Test-RHEL-7.9-3)
+
+TASK [Client TCP connectivity test to each FTP server (first FTP port)] ************************************************************************************************
+ok: [Test-RHEL-7.9-1] => (item=Test-RHEL-7.9-3)
+
+TASK [Debug FTP client connectivity results] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    ping_results_raw:
+    - ansible_loop_var: item
+      changed: false
+      cmd:
+      - ping
+      - -c
+      - '2'
+      - Test-RHEL-7.9-3
+      delta: '0:00:01.006692'
+      end: '2026-02-05 18:38:40.443619'
+      failed: false
+      failed_when_result: false
+      invocation:
+        module_args:
+          _raw_params: |-
+            ping -c 2 Test-RHEL-7.9-3
+          _uses_shell: false
+          argv: null
+          chdir: null
+          creates: null
+          executable: null
+          expand_argument_vars: true
+          removes: null
+          stdin: null
+          stdin_add_newline: true
+          strip_empty_ends: true
+      item: Test-RHEL-7.9-3
+      msg: ''
+      rc: 0
+      start: '2026-02-05 18:38:39.436927'
+      stderr: ''
+      stderr_lines: []
+      stdout: |-
+        PING Test-RHEL-7.9-3 (10.71.18.208) 56(84) bytes of data.
+        64 bytes from Test-RHEL-7.9-3 (10.71.18.208): icmp_seq=1 ttl=64 time=0.427 ms
+        64 bytes from Test-RHEL-7.9-3 (10.71.18.208): icmp_seq=2 ttl=64 time=0.192 ms
+
+        --- Test-RHEL-7.9-3 ping statistics ---
+        2 packets transmitted, 2 received, 0% packet loss, time 999ms
+        rtt min/avg/max/mdev = 0.192/0.309/0.427/0.118 ms
+      stdout_lines:
+      - PING Test-RHEL-7.9-3 (10.71.18.208) 56(84) bytes of data.
+      - '64 bytes from Test-RHEL-7.9-3 (10.71.18.208): icmp_seq=1 ttl=64 time=0.427 ms'
+      - '64 bytes from Test-RHEL-7.9-3 (10.71.18.208): icmp_seq=2 ttl=64 time=0.192 ms'
+      - ''
+      - '--- Test-RHEL-7.9-3 ping statistics ---'
+      - 2 packets transmitted, 2 received, 0% packet loss, time 999ms
+      - rtt min/avg/max/mdev = 0.192/0.309/0.427/0.118 ms
+    tcp_results_raw:
+    - ansible_loop_var: item
+      changed: false
+      cmd: |-
+        timeout 5 bash -c 'cat < /dev/null > /dev/tcp/Test-RHEL-7.9-3/21' && echo "Connected" || echo "Failed"
+      delta: '0:00:00.009214'
+      end: '2026-02-05 18:38:41.442202'
+      failed: false
+      failed_when_result: false
+      invocation:
+        module_args:
+          _raw_params: |-
+            timeout 5 bash -c 'cat < /dev/null > /dev/tcp/Test-RHEL-7.9-3/21' && echo "Connected" || echo "Failed"
+          _uses_shell: true
+          argv: null
+          chdir: null
+          creates: null
+          executable: null
+          expand_argument_vars: true
+          removes: null
+          stdin: null
+          stdin_add_newline: true
+          strip_empty_ends: true
+      item: Test-RHEL-7.9-3
+      msg: ''
+      rc: 0
+      start: '2026-02-05 18:38:41.432988'
+      stderr: |-
+        bash: connect: Connection refused
+        bash: /dev/tcp/Test-RHEL-7.9-3/21: Connection refused
+      stderr_lines:
+      - 'bash: connect: Connection refused'
+      - 'bash: /dev/tcp/Test-RHEL-7.9-3/21: Connection refused'
+      stdout: Failed
+      stdout_lines:
+      - Failed
+
+TASK [Collect recent journal entries for FTP service] ******************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Debug FTP journal collection status] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    journal_rc: '0'
+
+TASK [Render consolidated FTP diagnosis report] ************************************************************************************************************************
+changed: [Test-RHEL-7.9-1]
+
+TASK [Debug final report path] *****************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg: 'FTP diagnosis report has been generated at: /root/ftp_diagnosis_report.txt'
+
+PLAY RECAP *************************************************************************************************************************************************************
+Test-RHEL-7.9-1            : ok=12   changed=1    unreachable=0    failed=0    skipped=13   rescued=0    ignored=0
+
+

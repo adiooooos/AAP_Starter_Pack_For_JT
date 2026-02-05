@@ -1,0 +1,30 @@
+---
+# Global variables for FTP service fault automatic diagnosis
+
+# Target host group for this scenario (must exist in inventory)
+target_group: ftp_servers
+
+# FTP service and package
+ftp_service: vsftpd
+ftp_package: vsftpd
+
+# FTP listening port(s)
+ftp_ports:
+  - 21
+
+# Report output path on each host
+report_output_path: "/root/ftp_diagnosis_report.txt"
+
+# Client-side connectivity test options
+ftp_test_timeout: 5
+
+# Number of ping packets from client to server
+ftp_ping_count: 2
+
+# Number of journal lines to collect for vsftpd service
+collect_journal_lines: 200
+
+# Optional: attempt to start vsftpd service when it is inactive
+attempt_service_start: false
+
+

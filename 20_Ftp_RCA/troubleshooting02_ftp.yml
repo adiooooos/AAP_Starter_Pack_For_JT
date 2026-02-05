@@ -1,0 +1,267 @@
+---
+# =============================================================================
+# RHEL7/8/9 & CentOS7/8/9 FTP Service Fault Automatic Diagnosis
+#
+# This playbook performs a non-intrusive, read-only health check for FTP
+# (vsftpd by default) across server and client roles:
+# - OS compatibility assertion (RHEL/CentOS 7/8/9 only)
+# - Package & systemd service status on FTP servers
+# - Port listening and basic firewall diagnostics on FTP servers
+# - Key vsftpd configuration checks (anonymous_enable and main config file)
+# - Basic network reachability and TCP connectivity tests from FTP clients
+# - Optional service start attempt (block/rescue, non-fatal)
+# - Recent journal entries collection for the FTP service
+# - Final consolidated text report per host via Jinja2 template
+#
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+#
+# License Type: End User License Agreement (EULA)
+# License Model: Subscription-based authorization
+# =============================================================================
+
+- name: "RHEL7/8/9 & CentOS7/8/9 FTP Service Fault Automatic Diagnosis"
+  hosts: "{{ target_group | default('ftp_servers') }}"
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Assert supported operating system (RHEL/CentOS 7/8/9 only)
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ['RedHat', 'CentOS']
+          - ansible_distribution_major_version in ['7', '8', '9']
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        quiet: true
+
+    - name: Assert required variables are defined
+      ansible.builtin.assert:
+        that:
+          - ftp_service is defined
+          - ftp_package is defined
+          - ftp_ports is defined
+          - ftp_ports | length > 0
+          - report_output_path is defined
+          - ftp_ping_count is defined
+          - ftp_test_timeout is defined
+        fail_msg: >-
+          Required variables (ftp_service, ftp_package, ftp_ports, report_output_path,
+          ftp_ping_count, ftp_test_timeout) must be defined.
+        quiet: true
+
+    - name: Debug OS and baseline variables
+      ansible.builtin.debug:
+        msg:
+          os_distribution: "{{ ansible_distribution }}"
+          os_version: "{{ ansible_distribution_version }}"
+          ftp_service: "{{ ftp_service }}"
+          ftp_package: "{{ ftp_package }}"
+          ftp_ports: "{{ ftp_ports | default([]) }}"
+          report_output_path: "{{ report_output_path }}"
+          ftp_ping_count: "{{ ftp_ping_count }}"
+          ftp_test_timeout: "{{ ftp_test_timeout }}"
+
+  tasks:
+    # -----------------------------------------------------------------------
+    # FTP server-side checks (only for hosts in ftp_servers)
+    # -----------------------------------------------------------------------
+    - name: Gather service facts (server-side, non-fatal)
+      ansible.builtin.service_facts:
+      failed_when: false
+      when: "'ftp_servers' in group_names"
+
+    - name: Check if FTP package is installed (rpm -q) - server
+      ansible.builtin.command: "rpm -q {{ ftp_package }}"
+      register: ftp_rpm_query
+      changed_when: false
+      failed_when: false
+      when: "'ftp_servers' in group_names"
+
+    - name: Check FTP service active state (systemctl is-active) - server
+      ansible.builtin.command: "systemctl is-active {{ ftp_service }}"
+      register: ftp_svc_active
+      changed_when: false
+      failed_when: false
+      when: "'ftp_servers' in group_names"
+
+    - name: Check FTP service enabled state (systemctl is-enabled) - server
+      ansible.builtin.command: "systemctl is-enabled {{ ftp_service }}"
+      register: ftp_svc_enabled
+      changed_when: false
+      failed_when: false
+      when: "'ftp_servers' in group_names"
+
+    - name: Build FTP ports list to check - server
+      ansible.builtin.set_fact:
+        ftp_expected_ports: "{{ ftp_ports | default([]) }}"
+      when: "'ftp_servers' in group_names"
+
+    - name: Collect listening sockets for FTP ports (ss -tulpn) - server
+      ansible.builtin.command: "ss -tulpn"
+      register: ftp_ss_listen
+      changed_when: false
+      failed_when: false
+      when: "'ftp_servers' in group_names"
+
+    - name: Extract listening info per FTP port - server
+      ansible.builtin.set_fact:
+        ftp_ports_status: >-
+          {{
+            ftp_expected_ports | map('int') | list
+          }}
+      when: "'ftp_servers' in group_names"
+
+    - name: Debug FTP package, service and port status - server
+      ansible.builtin.debug:
+        msg:
+          ftp_package_installed: "{{ 'yes' if (ftp_rpm_query.rc | default(1)) == 0 else 'no' }}"
+          ftp_service_active: "{{ ftp_svc_active.stdout | default('unknown') }}"
+          ftp_service_enabled: "{{ ftp_svc_enabled.stdout | default('unknown') }}"
+          ftp_rpm_query_rc: "{{ ftp_rpm_query.rc | default('N/A') }}"
+          ftp_svc_active_rc: "{{ ftp_svc_active.rc | default('N/A') }}"
+          ftp_svc_enabled_rc: "{{ ftp_svc_enabled.rc | default('N/A') }}"
+          ftp_expected_ports: "{{ ftp_expected_ports | default([]) }}"
+          ss_listen_rc: "{{ ftp_ss_listen.rc | default('N/A') }}"
+      when: "'ftp_servers' in group_names"
+
+    - name: Check basic firewall status (firewalld or iptables) - server
+      ansible.builtin.shell: |
+        if command -v firewall-cmd &>/dev/null; then
+          echo "firewalld active state:"
+          systemctl is-active firewalld || true
+          echo ""
+          echo "firewalld --list-all:"
+          firewall-cmd --list-all || true
+        elif command -v iptables &>/dev/null; then
+          echo "iptables -L -n output:"
+          iptables -L -n || true
+        else
+          echo "No firewall tool found (firewalld/iptables not available)."
+        fi
+      register: ftp_firewall_status
+      changed_when: false
+      failed_when: false
+      when: "'ftp_servers' in group_names"
+
+    - name: Check vsftpd main configuration file existence - server
+      ansible.builtin.stat:
+        path: "/etc/vsftpd/vsftpd.conf"
+      register: vsftpd_conf_stat
+      when: "'ftp_servers' in group_names"
+
+    - name: Check vsftpd anonymous_enable setting (if config exists) - server
+      ansible.builtin.command: "grep '^anonymous_enable' /etc/vsftpd/vsftpd.conf || true"
+      register: vsftpd_conf_anonymous
+      changed_when: false
+      failed_when: false
+      when:
+        - "'ftp_servers' in group_names"
+        - vsftpd_conf_stat.stat.exists | default(false)
+
+    - name: Debug vsftpd configuration - server
+      ansible.builtin.debug:
+        msg:
+          vsftpd_conf_exists: "{{ vsftpd_conf_stat.stat.exists | default(false) }}"
+          vsftpd_anonymous_enable_line: "{{ vsftpd_conf_anonymous.stdout | default('Not Found or Not Checked') }}"
+      when: "'ftp_servers' in group_names"
+
+    # -----------------------------------------------------------------------
+    # Optional FTP service start attempt (non-fatal, controlled by variable)
+    # -----------------------------------------------------------------------
+    - block:
+        - name: Optionally attempt to start FTP service (non-fatal) - server
+          ansible.builtin.service:
+            name: "{{ ftp_service }}"
+            state: started
+          when:
+            - attempt_service_start | default(false) | bool
+            - "'ftp_servers' in group_names"
+          register: ftp_start_attempt
+      rescue:
+        - name: Debug FTP service start failure (captured in block/rescue)
+          ansible.builtin.debug:
+            msg: "Attempt to start {{ ftp_service }} failed, but execution will continue for diagnostics."
+      always:
+        - name: Debug FTP service start attempt result
+          ansible.builtin.debug:
+            msg:
+              attempt_service_start: "{{ attempt_service_start | default(false) | bool }}"
+              ftp_start_changed: "{{ ftp_start_attempt.changed | default(false) }}"
+              ftp_start_failed: "{{ ftp_start_attempt.failed | default(false) }}"
+
+    # -----------------------------------------------------------------------
+    # FTP client-side connectivity checks (only for hosts in ftp_clients)
+    # -----------------------------------------------------------------------
+    - name: Prepare FTP server address list (for client connectivity tests)
+      ansible.builtin.set_fact:
+        ftp_server_list: >-
+          {{
+            (groups['ftp_servers'] | default([]))
+            | map('extract', hostvars, 'ansible_host')
+            | map('default', '') 
+            | list
+          }}
+      when: "'ftp_clients' in group_names"
+
+    - name: Client ping test to each FTP server
+      ansible.builtin.command: >
+        ping -c {{ ftp_ping_count }} {{ hostvars[item].ansible_host | default(item) }}
+      loop: "{{ groups['ftp_servers'] | default([]) }}"
+      loop_control:
+        label: "{{ item }}"
+      register: client_ping_results
+      changed_when: false
+      failed_when: false
+      when: "'ftp_clients' in group_names"
+
+    - name: Client TCP connectivity test to each FTP server (first FTP port)
+      ansible.builtin.shell: >
+        timeout {{ ftp_test_timeout }} bash -c
+        'cat < /dev/null > /dev/tcp/{{ hostvars[item].ansible_host | default(item) }}/{{ ftp_ports[0] | int }}'
+        && echo "Connected"
+        || echo "Failed"
+      loop: "{{ groups['ftp_servers'] | default([]) }}"
+      loop_control:
+        label: "{{ item }}"
+      register: client_tcp_results
+      changed_when: false
+      failed_when: false
+      when: "'ftp_clients' in group_names"
+
+    - name: Debug FTP client connectivity results
+      ansible.builtin.debug:
+        msg:
+          ping_results_raw: "{{ client_ping_results.results | default([]) }}"
+          tcp_results_raw: "{{ client_tcp_results.results | default([]) }}"
+      when: "'ftp_clients' in group_names"
+
+    # -----------------------------------------------------------------------
+    # Logs and journal collection for FTP service (non-fatal)
+    # -----------------------------------------------------------------------
+    - name: Collect recent journal entries for FTP service
+      ansible.builtin.command: >
+        journalctl -u {{ ftp_service }} -n {{ collect_journal_lines | default(200) }}
+      register: ftp_journal
+      changed_when: false
+      failed_when: false
+
+    - name: Debug FTP journal collection status
+      ansible.builtin.debug:
+        msg:
+          journal_rc: "{{ ftp_journal.rc | default('N/A') }}"
+
+    # -----------------------------------------------------------------------
+    # Final per-host FTP diagnosis report generation
+    # -----------------------------------------------------------------------
+    - name: Render consolidated FTP diagnosis report
+      ansible.builtin.template:
+        src: templates/ftp_diagnosis_report.j2
+        dest: "{{ report_output_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Debug final report path
+      ansible.builtin.debug:
+        msg: "FTP diagnosis report has been generated at: {{ report_output_path }}"
+
+

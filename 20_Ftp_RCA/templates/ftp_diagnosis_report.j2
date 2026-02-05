@@ -1,0 +1,79 @@
+=================== FTP Diagnosis for {{ inventory_hostname }} ===================
+Host: {{ inventory_hostname }}  (addr: {{ ansible_default_ipv4.address | default(ansible_host | default('N/A')) }})
+OS: {{ ansible_distribution }} {{ ansible_distribution_version }} ({{ ansible_architecture }})
+-----------------------------------------------------------------------------
+{% if 'ftp_servers' in group_names %}
+[Server Checks]
+Package ({{ ftp_package }}):
+  {% if ftp_rpm_query is defined %}
+  - Query result (rc={{ ftp_rpm_query.rc | default('N/A') }}): {{ (ftp_rpm_query.stdout + ' ' + ftp_rpm_query.stderr) | trim }}
+  {% else %}
+  - Not Checked
+  {% endif %}
+
+Service ({{ ftp_service }}):
+  - is-active: {{ ftp_svc_active.stdout | default('Unknown') }}
+  - is-enabled: {{ ftp_svc_enabled.stdout | default('Unknown') }}
+
+Port Listening ({{ ftp_ports | join(', ') }}):
+  {% if ftp_ss_listen is defined and ftp_ss_listen.stdout is defined %}
+  {{ ftp_ss_listen.stdout | default('No listening info or ss command not available.') }}
+  {% else %}
+  No listening info (ss command may be missing or check not executed).
+  {% endif %}
+
+Firewall Info:
+  {{ ftp_firewall_status.stdout | default('No firewall tool found or no output') }}
+
+vsftpd.conf:
+  - Exists: {{ vsftpd_conf_stat.stat.exists | default(false) }}
+  - anonymous_enable line: {{ vsftpd_conf_anonymous.stdout | default('Not Found or Not Checked') }}
+{% endif %}
+
+{% if 'ftp_clients' in group_names %}
+[Client Connectivity Checks]
+Ping results:
+{% if client_ping_results is defined and client_ping_results.results is defined %}
+{% for r in client_ping_results.results %}
+  - Target: {{ r.item | default('N/A') }}
+    rc: {{ r.rc | default('N/A') }}
+    output:
+{{ (r.stdout | default('') | trim) | indent(6) }}
+{% endfor %}
+{% else %}
+  - No ping tests executed (no ftp_servers group or tests skipped).
+{% endif %}
+
+TCP connect (port {{ ftp_ports[0] | int if ftp_ports is defined and ftp_ports|length > 0 else '21' }}) results:
+{% if client_tcp_results is defined and client_tcp_results.results is defined %}
+{% for r in client_tcp_results.results %}
+  - Target: {{ r.item | default('N/A') }}
+    rc: {{ r.rc | default('N/A') }}
+    result: {{ r.stdout | default('') | trim }}
+{% endfor %}
+{% else %}
+  - No TCP connectivity tests executed (no ftp_servers group or tests skipped).
+{% endif %}
+{% endif %}
+
+[Journal Summary]
+  - journalctl rc: {{ ftp_journal.rc | default('N/A') }}
+
+-----------------------------------------------------------------------------
+Diagnostic Hint:
+{% if 'ftp_servers' in group_names and (ftp_rpm_query is defined and ftp_rpm_query.rc != 0) %}
+- FTP package {{ ftp_package }} is not installed. Install and configure the FTP service first.
+{% elif 'ftp_servers' in group_names and (ftp_svc_active is defined and ftp_svc_active.stdout | default('') != 'active') %}
+- FTP service {{ ftp_service }} is not active. Check service status, configuration and logs.
+{% elif 'ftp_servers' in group_names and (ftp_ss_listen is defined and (ftp_ss_listen.stdout | default('')) == '') %}
+- FTP package may be present but no listening ports detected. Verify service state, firewall, SELinux and passive ports configuration.
+{% elif 'ftp_clients' in group_names and client_tcp_results is defined %}
+- Basic client connectivity tests executed. Review failed TCP connections and ping results for potential network, firewall or routing issues.
+{% else %}
+- Basic checks performed. Consider checking user permissions, passive ports range, FTP over TLS settings, or packet captures if needed.
+{% endif %}
+
+Generated at: {{ ansible_date_time.iso8601 }}
+===============================================================================
+
+
