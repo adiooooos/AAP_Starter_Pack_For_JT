@@ -23,6 +23,11 @@ The design follows Red Hat Ansible Automation Platform best practices:
 - Uses `debug` tasks after each functional section for easier troubleshooting.
 - Uses `block`/`rescue` to safely handle optional service start attempts.
 
+### screenshots
+<img width="2510" height="1178" alt="image" src="https://github.com/user-attachments/assets/19c3988a-afa5-486a-92d5-7c714f74876e" />
+<img width="2510" height="649" alt="image" src="https://github.com/user-attachments/assets/e3288b2c-9810-41b8-a342-409399b8f5af" />
+
+
 ---
 
 ### 2. File Layout
@@ -199,3 +204,4 @@ You can use `Playbook_test_results.md` as a reference to:
 - Understand the expected task flow and debug output on a healthy host.
 - Verify that non-critical checks (SELinux booleans, firewalld, logs) do **not** break the play on partially configured systems.
 - Cross-check the generated report content against the raw Ansible task output.
+
