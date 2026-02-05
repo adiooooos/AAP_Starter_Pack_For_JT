@@ -1,0 +1,97 @@
+[root@aap25 22_MEM_OOM_RCA]# ansible-playbook -i inventory troubleshooting03_oom.yml -e target_group=oom_servers
+[DEPRECATION WARNING]: community.general.yaml has been deprecated. The plugin has been superseded by the the option `result_format=yaml` in callback plugin
+ansible.builtin.default from ansible-core 2.13 onwards. This feature will be removed from community.general in version 13.0.0. Deprecation warnings can be disabled by
+setting deprecation_warnings=False in ansible.cfg.
+
+PLAY [RHEL7/8/9 & CentOS7/8/9 Out of Memory (OOM) Automatic Diagnosis] *************************************************************************************************
+
+TASK [Assert supported operating system (RHEL/CentOS 7/8/9 only)] ******************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Assert required variables are defined] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Debug OS and baseline variables] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    os_distribution: RedHat
+    os_version: '7.9'
+    report_dir: /var/tmp/oom_diagnosis
+    report_file: oom_report.txt
+
+TASK [Ensure report directory exists] **********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Collect OOM killer logs from /var/log/messages] ******************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Collect OOM killer logs from journalctl (alternative source)] ****************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Collect killed process memory usage logs] ************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Collect killed process memory usage from journalctl] *************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Debug OOM log collection status] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    oom_killer_journal_rc: '0'
+    oom_killer_logs_rc: '0'
+    oom_process_journal_rc: '0'
+    oom_process_logs_rc: '0'
+
+TASK [Get current day for SAR log file] ********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Check SAR memory usage (%commit) from today's log] ***************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Check SAR swap usage from today's log] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Check SAR CPU usage from today's log] ****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Debug SAR collection status] *************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    sar_cpu_rc: '0'
+    sar_day: '05'
+    sar_memory_rc: '0'
+    sar_swap_rc: '0'
+
+TASK [Check vmstat (short run, 1 second interval, 5 samples)] **********************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Collect total memory from /proc/meminfo] *************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Collect free memory using free -m] *******************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Debug real-time memory status collection] ************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    free_mem_rc: '0'
+    mem_total_rc: '0'
+    vmstat_out_rc: '0'
+
+TASK [Collect memory hardware info using dmidecode] ********************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Debug memory hardware collection status] *************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg:
+    dmidecode_mem_rc: '0'
+
+TASK [Render consolidated OOM diagnosis report] ************************************************************************************************************************
+changed: [Test-RHEL-7.9-1]
+
+TASK [Debug final report path] *****************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] =>
+  msg: 'OOM diagnosis report has been generated at: /var/tmp/oom_diagnosis/oom_report.txt'
+
+PLAY RECAP *************************************************************************************************************************************************************
+Test-RHEL-7.9-1            : ok=22   changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0

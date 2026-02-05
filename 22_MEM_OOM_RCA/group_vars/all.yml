@@ -1,0 +1,12 @@
+---
+# Global variables for Out of Memory (OOM) automatic diagnosis
+
+# Target host group for this scenario (must exist in inventory)
+target_group: oom_servers
+
+# Report directory on each target host
+report_dir: "/var/tmp/oom_diagnosis"
+
+# Report filename
+report_file: "oom_report.txt"
+

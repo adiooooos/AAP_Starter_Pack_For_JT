@@ -1,0 +1,208 @@
+========== Out of Memory (OOM) Diagnosis Report ==========
+Hostname: {{ inventory_hostname }}
+IP Address: {{ ansible_default_ipv4.address | default(ansible_host | default('N/A')) }}
+OS: {{ ansible_distribution }} {{ ansible_distribution_version }} ({{ ansible_architecture }})
+Date: {{ ansible_date_time.date }} {{ ansible_date_time.time }}
+===============================================================================
+
+========== OOM Killer Logs ==========
+[Description] System OOM killer triggered logs, showing when and which processes were killed due to memory shortage
+[Key Information]
+- Timestamp: When the OOM event occurred
+- Process: Which process was killed
+- Score: OOM score of the killed process
+- Memory details: Virtual memory, anonymous RSS, file RSS, shared memory RSS
+
+--- From /var/log/messages ---
+{% if oom_killer_logs is defined and oom_killer_logs.stdout is defined and oom_killer_logs.stdout | trim != '' %}
+{{ oom_killer_logs.stdout | default('N/A') }}
+{% else %}
+N/A - No OOM killer logs found in /var/log/messages
+{% endif %}
+
+--- From journalctl (kernel logs) ---
+{% if oom_killer_journal is defined and oom_killer_journal.stdout is defined and oom_killer_journal.stdout | trim != '' %}
+{{ oom_killer_journal.stdout | default('N/A') }}
+{% else %}
+N/A - No OOM killer logs found in journalctl
+{% endif %}
+
+========== Processes Killed Memory Usage ==========
+[Description] Detailed memory usage information of processes killed by OOM killer
+[Key Parameters Explanation]
+- total-vm: Total virtual memory used by the process (KB)
+- anon-rss: Anonymous resident set size (physical memory used by process, KB)
+- file-rss: File resident set size (memory mapped files, KB)
+- shmem-rss: Shared memory resident set size (KB)
+
+--- From /var/log/messages ---
+{% if oom_process_logs is defined and oom_process_logs.stdout is defined and oom_process_logs.stdout | trim != '' %}
+{{ oom_process_logs.stdout | default('N/A') }}
+{% else %}
+N/A - No killed process memory usage logs found in /var/log/messages
+{% endif %}
+
+--- From journalctl (kernel logs) ---
+{% if oom_process_journal is defined and oom_process_journal.stdout is defined and oom_process_journal.stdout | trim != '' %}
+{{ oom_process_journal.stdout | default('N/A') }}
+{% else %}
+N/A - No killed process memory usage logs found in journalctl
+{% endif %}
+
+========== SAR Memory Usage (%commit) ==========
+[Description] Historical memory usage statistics from System Activity Reporter (SAR)
+[Key Parameters Explanation]
+- kbmemfree: Free memory (KB)
+- kbavail: Available memory (KB)
+- kbmemused: Used memory (KB)
+- %memused: Percentage of used memory
+- kbbuffers: Buffer memory (KB)
+- kbcached: Cached memory (KB)
+- kbcommit: Committed memory (KB) - memory that applications have requested
+- %commit: Percentage of committed memory relative to total memory + swap
+  **This is a critical metric: if %commit exceeds 100%, the system is at risk of OOM**
+- kbactive: Active memory (KB)
+- kbinact: Inactive memory (KB)
+- kbdirty: Dirty pages (KB)
+
+{% if sar_memory is defined and sar_memory.stdout is defined and sar_memory.stdout | trim != '' %}
+{{ sar_memory.stdout | default('N/A') }}
+{% else %}
+N/A - SAR memory data not available (sysstat package may not be installed or no data collected for today)
+{% endif %}
+
+========== SAR Swap Usage ==========
+[Description] Historical swap usage statistics from System Activity Reporter (SAR)
+[Key Parameters Explanation]
+- kbswpfree: Free swap space (KB)
+- kbswpused: Used swap space (KB)
+- %swpused: Percentage of swap space used
+- kbswpcad: Cached swap space (KB) - swap pages that are also in memory
+- %swpcad: Percentage of cached swap relative to used swap
+
+{% if sar_swap is defined and sar_swap.stdout is defined and sar_swap.stdout | trim != '' %}
+{{ sar_swap.stdout | default('N/A') }}
+{% else %}
+N/A - SAR swap data not available (sysstat package may not be installed or no data collected for today)
+{% endif %}
+
+========== SAR CPU Usage ==========
+[Description] Historical CPU usage statistics from System Activity Reporter (SAR)
+[Key Parameters Explanation]
+- %user: CPU time spent in user space
+- %nice: CPU time spent on niced processes
+- %system: CPU time spent in kernel space
+- %iowait: CPU time waiting for I/O operations
+- %steal: CPU time stolen by hypervisor (virtualization)
+- %idle: CPU idle time
+[Note] High CPU usage combined with OOM events may indicate memory pressure causing excessive swapping and CPU overhead
+
+{% if sar_cpu is defined and sar_cpu.stdout is defined and sar_cpu.stdout | trim != '' %}
+{{ sar_cpu.stdout | default('N/A') }}
+{% else %}
+N/A - SAR CPU data not available (sysstat package may not be installed or no data collected for today)
+{% endif %}
+
+========== vmstat Output (Real-time) ==========
+[Description] Real-time memory, swap, and I/O statistics
+[Key Parameters Explanation]
+- r: Number of runnable processes
+- b: Number of processes in uninterruptible sleep
+- swpd: Used swap space (KB)
+- free: Free memory (KB)
+- buff: Buffer memory (KB)
+- cache: Cache memory (KB)
+- si: Swap in (KB/s) - pages swapped in from disk
+- so: Swap out (KB/s) - pages swapped out to disk
+- bi: Blocks in (blocks/s) - blocks read from block devices
+- bo: Blocks out (blocks/s) - blocks written to block devices
+- in: Interrupts per second
+- cs: Context switches per second
+- us: User CPU time (%)
+- sy: System CPU time (%)
+- id: Idle CPU time (%)
+- wa: I/O wait CPU time (%)
+- st: Steal time (%) - time stolen by hypervisor
+
+{% if vmstat_out is defined and vmstat_out.stdout is defined and vmstat_out.stdout | trim != '' %}
+{{ vmstat_out.stdout | default('N/A') }}
+{% else %}
+N/A - vmstat output not available
+{% endif %}
+
+========== Total Memory from /proc/meminfo ==========
+[Description] Total system memory from kernel memory information
+[Key Information]
+- MemTotal: Total usable RAM (physical memory minus reserved for kernel)
+
+{% if mem_total is defined and mem_total.stdout is defined and mem_total.stdout | trim != '' %}
+{{ mem_total.stdout | default('N/A') }}
+{% else %}
+N/A - /proc/meminfo not accessible
+{% endif %}
+
+========== Free Memory from free -m ==========
+[Description] Current memory usage summary
+[Key Parameters Explanation]
+- total: Total memory (MB)
+- used: Used memory (MB) - includes applications and system cache
+- free: Completely free memory (MB)
+- shared: Shared memory (MB)
+- buff/cache: Buffer and cache memory (MB) - can be released for applications
+- available: Actually available memory (MB) - free + cache - non-releasable cache
+- Swap: Swap space usage
+
+{% if free_mem is defined and free_mem.stdout is defined and free_mem.stdout | trim != '' %}
+{{ free_mem.stdout | default('N/A') }}
+{% else %}
+N/A - free command output not available
+{% endif %}
+
+========== Memory Hardware Info (dmidecode -t memory) ==========
+[Description] Physical memory hardware information
+[Key Parameters Explanation]
+- Size: Memory module size
+- Speed: Memory speed (MHz)
+- Manufacturer: Memory manufacturer
+- Part Number: Memory part number
+- Serial Number: Memory serial number
+- Locator: Physical memory slot location
+- Form Factor: Memory form factor (DIMM, SODIMM, etc.)
+- Total Width: Total width including ECC bits
+- Data Width: Data width without ECC
+
+{% if dmidecode_mem is defined and dmidecode_mem.stdout is defined and dmidecode_mem.stdout | trim != '' %}
+{{ dmidecode_mem.stdout | default('N/A') }}
+{% else %}
+N/A - dmidecode output not available (may require root privileges or dmidecode not installed)
+{% endif %}
+
+========== Diagnostic Recommendations ==========
+[OOM Analysis Points]
+1. Check %commit in SAR memory output: If it exceeds 100%, the system is at risk of OOM
+2. Review OOM killer logs: Identify which processes were killed and when
+3. Analyze killed process memory usage: Check total-vm and anon-rss to understand memory consumption
+4. Check swap usage: High swap usage indicates physical memory shortage
+5. Review historical trends: SAR data shows memory usage patterns over time
+6. Check for memory leaks: Compare process memory usage over time
+7. Verify hardware: Ensure all memory modules are properly detected
+
+[Common Issues and Solutions]
+1. Insufficient physical memory: Increase RAM or reduce memory usage by applications
+2. Memory leak: Identify and fix applications with memory leaks
+3. Excessive memory allocation: Optimize application memory settings
+4. Swap thrashing: High swap usage causes performance degradation - increase physical memory
+5. OOM killer too aggressive: Adjust /proc/sys/vm/oom_kill_allocating_task or /proc/sys/vm/overcommit_memory
+6. Application misconfiguration: Review application memory limits and JVM heap sizes
+
+[Prevention Strategies]
+1. Monitor %commit metric regularly - set alerts when it exceeds 80%
+2. Implement memory limits for applications (cgroups, systemd limits)
+3. Use memory monitoring tools to track memory usage trends
+4. Review and optimize application memory allocation
+5. Ensure adequate swap space (but prefer physical memory)
+6. Consider memory overcommit settings based on workload characteristics
+
+===============================================================================
+Generated at: {{ ansible_date_time.iso8601 }}
+

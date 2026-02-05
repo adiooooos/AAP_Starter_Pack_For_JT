@@ -1,0 +1,204 @@
+---
+# =============================================================================
+# RHEL7/8/9 & CentOS7/8/9 Out of Memory (OOM) Automatic Diagnosis
+#
+# This playbook performs a non-intrusive, read-only OOM (Out of Memory)
+# diagnosis for RHEL/CentOS 7/8/9 servers:
+# - OS compatibility assertion (RHEL/CentOS 7/8/9 only)
+# - OOM killer logs collection from system logs
+# - Killed process memory usage analysis
+# - Historical memory usage analysis via SAR (memory, swap, CPU)
+# - Real-time memory status via vmstat
+# - Current memory information from /proc/meminfo and free
+# - Memory hardware information via dmidecode
+# - Final consolidated text report per host via Jinja2 template
+#
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+#
+# License Type: End User License Agreement (EULA)
+# License Model: Subscription-based authorization
+# =============================================================================
+
+- name: "RHEL7/8/9 & CentOS7/8/9 Out of Memory (OOM) Automatic Diagnosis"
+  hosts: "{{ target_group | default('oom_servers') }}"
+  become: true
+  gather_facts: true
+
+  vars:
+    report_dir: "/var/tmp/oom_diagnosis"
+    report_file: "oom_report.txt"
+
+  pre_tasks:
+    - name: Assert supported operating system (RHEL/CentOS 7/8/9 only)
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ['RedHat', 'CentOS']
+          - ansible_distribution_major_version in ['7', '8', '9']
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        quiet: true
+
+    - name: Assert required variables are defined
+      ansible.builtin.assert:
+        that:
+          - report_dir is defined
+          - report_file is defined
+        fail_msg: >-
+          Required variables (report_dir, report_file) must be defined.
+        quiet: true
+
+    - name: Debug OS and baseline variables
+      ansible.builtin.debug:
+        msg:
+          os_distribution: "{{ ansible_distribution }}"
+          os_version: "{{ ansible_distribution_version }}"
+          report_dir: "{{ report_dir }}"
+          report_file: "{{ report_file }}"
+
+  tasks:
+    # -----------------------------------------------------------------------
+    # Create report directory
+    # -----------------------------------------------------------------------
+    - name: Ensure report directory exists
+      ansible.builtin.file:
+        path: "{{ report_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    # -----------------------------------------------------------------------
+    # OOM Log Analysis
+    # -----------------------------------------------------------------------
+    - name: Collect OOM killer logs from /var/log/messages
+      ansible.builtin.shell: |
+        egrep 'Out of memory:' /var/log/messages || true
+      register: oom_killer_logs
+      changed_when: false
+      failed_when: false
+
+    - name: Collect OOM killer logs from journalctl (alternative source)
+      ansible.builtin.shell: |
+        journalctl -k | grep -i "out of memory" || true
+      register: oom_killer_journal
+      changed_when: false
+      failed_when: false
+
+    - name: Collect killed process memory usage logs
+      ansible.builtin.shell: |
+        egrep 'total-vm' /var/log/messages || true
+      register: oom_process_logs
+      changed_when: false
+      failed_when: false
+
+    - name: Collect killed process memory usage from journalctl
+      ansible.builtin.shell: |
+        journalctl -k | grep -i "killed process" || true
+      register: oom_process_journal
+      changed_when: false
+      failed_when: false
+
+    - name: Debug OOM log collection status
+      ansible.builtin.debug:
+        msg:
+          oom_killer_logs_rc: "{{ oom_killer_logs.rc | default('N/A') }}"
+          oom_killer_journal_rc: "{{ oom_killer_journal.rc | default('N/A') }}"
+          oom_process_logs_rc: "{{ oom_process_logs.rc | default('N/A') }}"
+          oom_process_journal_rc: "{{ oom_process_journal.rc | default('N/A') }}"
+
+    # -----------------------------------------------------------------------
+    # Historical Memory Usage Analysis (SAR)
+    # -----------------------------------------------------------------------
+    - name: Get current day for SAR log file
+      ansible.builtin.set_fact:
+        sar_day: "{{ '%02d' | format(ansible_date_time.day | int) }}"
+
+    - name: Check SAR memory usage (%commit) from today's log
+      ansible.builtin.shell: |
+        sar -r -f /var/log/sa/sa{{ sar_day }} 2>/dev/null || true
+      register: sar_memory
+      changed_when: false
+      failed_when: false
+
+    - name: Check SAR swap usage from today's log
+      ansible.builtin.shell: |
+        sar -S -f /var/log/sa/sa{{ sar_day }} 2>/dev/null || true
+      register: sar_swap
+      changed_when: false
+      failed_when: false
+
+    - name: Check SAR CPU usage from today's log
+      ansible.builtin.shell: |
+        sar -f /var/log/sa/sa{{ sar_day }} 2>/dev/null || true
+      register: sar_cpu
+      changed_when: false
+      failed_when: false
+
+    - name: Debug SAR collection status
+      ansible.builtin.debug:
+        msg:
+          sar_memory_rc: "{{ sar_memory.rc | default('N/A') }}"
+          sar_swap_rc: "{{ sar_swap.rc | default('N/A') }}"
+          sar_cpu_rc: "{{ sar_cpu.rc | default('N/A') }}"
+          sar_day: "{{ sar_day }}"
+
+    # -----------------------------------------------------------------------
+    # Real-time Memory Status
+    # -----------------------------------------------------------------------
+    - name: Check vmstat (short run, 1 second interval, 5 samples)
+      ansible.builtin.shell: |
+        vmstat 1 5
+      register: vmstat_out
+      changed_when: false
+      failed_when: false
+
+    - name: Collect total memory from /proc/meminfo
+      ansible.builtin.shell: |
+        grep MemTotal /proc/meminfo
+      register: mem_total
+      changed_when: false
+      failed_when: false
+
+    - name: Collect free memory using free -m
+      ansible.builtin.shell: |
+        free -m
+      register: free_mem
+      changed_when: false
+      failed_when: false
+
+    - name: Debug real-time memory status collection
+      ansible.builtin.debug:
+        msg:
+          vmstat_out_rc: "{{ vmstat_out.rc | default('N/A') }}"
+          mem_total_rc: "{{ mem_total.rc | default('N/A') }}"
+          free_mem_rc: "{{ free_mem.rc | default('N/A') }}"
+
+    # -----------------------------------------------------------------------
+    # Memory Hardware Information
+    # -----------------------------------------------------------------------
+    - name: Collect memory hardware info using dmidecode
+      ansible.builtin.shell: |
+        dmidecode -t memory
+      register: dmidecode_mem
+      changed_when: false
+      failed_when: false
+
+    - name: Debug memory hardware collection status
+      ansible.builtin.debug:
+        msg:
+          dmidecode_mem_rc: "{{ dmidecode_mem.rc | default('N/A') }}"
+
+    # -----------------------------------------------------------------------
+    # Assemble OOM Diagnosis Report
+    # -----------------------------------------------------------------------
+    - name: Render consolidated OOM diagnosis report
+      ansible.builtin.template:
+        src: templates/oom_diagnosis_report.j2
+        dest: "{{ report_dir }}/{{ report_file }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Debug final report path
+      ansible.builtin.debug:
+        msg: "OOM diagnosis report has been generated at: {{ report_dir }}/{{ report_file }}"
+

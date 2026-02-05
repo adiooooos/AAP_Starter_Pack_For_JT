@@ -1,0 +1,20 @@
+[oom_servers]
+# Add your RHEL/CentOS 7/8/9 servers here for OOM diagnosis
+# Example:
+# web-server-01 ansible_host=192.168.1.100
+# db-server-01 ansible_host=192.168.1.101
+# app-server-01 ansible_host=192.168.1.102
+Test-RHEL-7.9-1
+
+# Standard groups from the development guide (for reference)
+[rhel7]
+Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+
