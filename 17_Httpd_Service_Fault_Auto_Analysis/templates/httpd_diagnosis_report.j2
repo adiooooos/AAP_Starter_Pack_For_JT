@@ -1,0 +1,119 @@
+==================== RHEL8/9 & CentOS8/9 Httpd Service Diagnosis Report ====================
+Generated Time: {{ ansible_date_time.iso8601 }}
+Target Host: {{ inventory_hostname }}
+
+【Basic Information】
+- OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+- Kernel: {{ ansible_kernel }}
+- SELinux: {{ selinux_mode | default('unknown') }}
+
+【Package and Service Status】
+- httpd Package: {{ 'Installed' if package_installed | default(false) else 'Not installed' }}
+{% if package_version is defined and package_version != 'N/A' %}
+- Package Version: {{ package_version }}
+{% endif %}
+- systemd Active Status: {{ service_active | default('unknown') }}
+- systemd Enabled Status: {{ service_enabled | default('unknown') }}
+
+【Configuration Syntax Check】
+- httpd -t: rc={{ httpd_syntax.rc | default(-1) }}, Output: {{ syntax_check_output | default('N/A') }}
+
+【Port Listening and Firewall】
+- Expected Ports: {{ (httpd_expected_ports | default([]) | map('string')) | join(', ') }}
+- ss -lntp (excerpt):
+{{ ports_listening_raw | default('N/A') }}
+- firewalld Status: {{ 'running' if firewalld_running | default(false) else 'not running' }}
+{% if firewalld_running | default(false) %}
+- firewalld Services: {{ firewalld_services | default([]) | join(' ') if firewalld_services | default([]) | length > 0 else 'N/A' }}
+- firewalld Ports: {{ firewalld_ports | default([]) | join(' ') if firewalld_ports | default([]) | length > 0 else 'N/A' }}
+{% endif %}
+
+【SELinux Boolean Values】
+{% if selinux_booleans | default({}) | length > 0 %}
+{% for bool_name, bool_value in selinux_booleans.items() %}
+- {{ bool_name }}: {{ bool_value }}
+{% endfor %}
+{% else %}
+- No SELinux boolean values checked (check may have failed)
+{% endif %}
+
+【Configuration and Logs】
+- httpd.conf Exists: {{ 'Yes' if httpd_conf_exists | default(false) else 'No' }}
+- Error Log Path: {{ httpd_error_log | default('N/A') }}
+- Error Log Tail (last {{ collect_journal_lines | default(200) }} lines):
+{{ error_log_content | default('(empty or unreadable)') }}
+
+【journalctl Recent Logs】
+{{ journalctl_content | default('-- No entries --') }}
+
+【Optional Service Start Attempt】
+{% if attempt_service_start | default(false) %}
+- Service Start Attempted: Yes
+{% if service_start_result is defined %}
+- Service Start Result: {{ 'SUCCESS' if service_start_result.changed | default(false) else 'FAILED' }}
+{% else %}
+- Service Start Result: NOT ATTEMPTED or FAILED
+{% endif %}
+{% else %}
+- Service Start Attempted: No (analysis-only mode)
+{% endif %}
+
+【Diagnosis Errors and Warnings】
+{% if diagnosis_errors | default([]) | length > 0 %}
+⚠️  Errors Encountered:
+{% for error in diagnosis_errors %}
+  - {{ error }}
+{% endfor %}
+{% else %}
+✅ No critical errors encountered
+{% endif %}
+
+{% if diagnosis_warnings | default([]) | length > 0 %}
+⚠️  Warnings:
+{% for warning in diagnosis_warnings %}
+  - {{ warning }}
+{% endfor %}
+{% else %}
+✅ No warnings
+{% endif %}
+
+【Common Fault Clues and Recommendations】
+- Syntax Errors: Non-zero return code from httpd -t usually indicates configuration spelling/path errors
+- Port Conflicts: If ss shows :80/:443 occupied by non-httpd processes, release or change ports
+- SELinux: If access is denied, check AVC logs and set appropriate boolean values/add contexts
+- Firewall: Ensure firewalld has http/https services or ports enabled
+- Permissions: Check web directory/log directory permissions or SELinux context anomalies
+- Service Not Starting: Check error logs, journalctl, and configuration syntax
+- Service Not Enabled: Use 'systemctl enable httpd' to enable service at boot
+
+【Root Cause Analysis Summary】
+{% if not package_installed | default(false) %}
+❌ ROOT CAUSE: Httpd package is not installed
+   → Solution: Install httpd package using 'yum install httpd' or 'dnf install httpd'
+{% elif service_active | default('unknown') == 'inactive' %}
+❌ ROOT CAUSE: Httpd service is not running
+   → Solution: Start service using 'systemctl start httpd'
+   {% if service_enabled | default('unknown') == 'disabled' %}
+   → Also enable at boot: 'systemctl enable httpd'
+   {% endif %}
+{% elif not syntax_check_passed | default(false) %}
+❌ ROOT CAUSE: Httpd configuration syntax error
+   → Solution: Fix configuration errors shown in 'httpd -t' output
+   → Check: {{ httpd_conf_path }} and files in {{ httpd_conf_d_path }}
+{% elif ports_listening_raw | default('') | length == 0 or ':80' not in ports_listening_raw and ':443' not in ports_listening_raw %}
+⚠️  POTENTIAL ISSUE: Httpd is not listening on expected ports (80/443)
+   → Solution: Check service status, configuration, and ensure ports are not blocked
+{% elif firewalld_running | default(false) and (firewalld_services | default([]) | select('match', 'http|https') | list | length == 0) and (firewalld_ports | default([]) | select('match', '80|443') | list | length == 0) %}
+⚠️  POTENTIAL ISSUE: Firewall may be blocking http/https traffic
+   → Solution: Enable http/https services: 'firewall-cmd --permanent --add-service=http --add-service=https && firewall-cmd --reload'
+   → Or enable ports: 'firewall-cmd --permanent --add-port=80/tcp --add-port=443/tcp && firewall-cmd --reload'
+{% elif selinux_mode | default('unknown') == 'Enforcing' and selinux_booleans | default({}) | selectattr('value', 'match', 'off') | list | length > 0 %}
+⚠️  POTENTIAL ISSUE: SELinux may be blocking httpd operations
+   → Solution: Review AVC logs and set appropriate SELinux boolean values
+{% else %}
+✅ NO OBVIOUS ISSUES DETECTED: All basic checks passed
+   → If service is still not working, check application-level configuration and logs
+{% endif %}
+
+=============================================================
+

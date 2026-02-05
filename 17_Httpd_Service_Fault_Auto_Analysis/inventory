@@ -1,0 +1,19 @@
+[web]
+# Add your target RHEL 8/9 or CentOS 8/9 hosts here
+# Example:
+# web1.example.com
+# 10.166.208.232
+Test-RHEL-7.9-3
+
+# Using the standard inventory format from development guide:
+[rhel7]
+Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+

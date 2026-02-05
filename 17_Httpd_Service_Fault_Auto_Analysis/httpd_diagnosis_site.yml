@@ -1,0 +1,504 @@
+---
+# RHEL8/9 & CentOS8/9 Httpd Service Fault Diagnosis Automation Playbook
+# 
+# Description:
+#   This playbook automates comprehensive httpd service fault diagnosis for RHEL/CentOS systems including:
+#   - Package installation status check
+#   - Service status analysis (systemd active/enabled)
+#   - Configuration syntax validation
+#   - Network port listening status
+#   - Security policy checks (SELinux, firewall)
+#   - Log analysis (error logs, journalctl)
+#   - Comprehensive diagnostic report generation
+#
+#   All checks are non-destructive and non-blocking. Individual check failures will not stop execution.
+#
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Through Subscription
+#
+# Supported OS:
+#   - RHEL 7/8/9
+#   - CentOS 7/8/9
+#
+# Usage:
+#   ansible-playbook httpd_diagnosis_site.yml -i inventory
+#   ansible-playbook httpd_diagnosis_site.yml -i inventory -e attempt_service_start=true
+
+- name: RHEL8/9 & CentOS8/9 Httpd Service Fault Diagnosis Automation
+  hosts: web
+  gather_facts: yes
+  become: yes
+
+  vars:
+    # Analysis-only mode by default; set attempt_service_start=true to try starting service
+    attempt_service_start: false
+
+  pre_tasks:
+    - name: Check OS compatibility
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["RedHat", "CentOS"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      tags: always
+
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - httpd_service is defined
+          - httpd_package is defined
+          - report_output_path is defined
+        fail_msg: "Required variables are not defined. Please check group_vars/all.yml"
+        success_msg: "All required variables are defined"
+      tags: always
+
+    - name: Initialize diagnosis status variables
+      ansible.builtin.set_fact:
+        diagnosis_errors: []
+        diagnosis_warnings: []
+        package_installed: false
+        service_active: "unknown"
+        service_enabled: "unknown"
+        syntax_check_passed: false
+        ports_listening: []
+        selinux_mode: "unknown"
+        firewalld_running: false
+        firewalld_services: []
+        firewalld_ports: []
+        selinux_booleans: {}
+        error_log_content: "N/A"
+        journalctl_content: "N/A"
+      tags: always
+
+    - name: Display diagnosis start information
+      ansible.builtin.debug:
+        msg:
+          - "═══════════════════════════════════════════════════════════════"
+          - "🔍 Starting Httpd Service Diagnosis"
+          - "═══════════════════════════════════════════════════════════════"
+          - "Target Host: {{ inventory_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel: {{ ansible_kernel }}"
+          - "Analysis Mode: {{ 'Service Start Attempt' if attempt_service_start else 'Analysis Only (No Changes)' }}"
+          - "═══════════════════════════════════════════════════════════════"
+      tags: always
+
+  tasks:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+      failed_when: false
+      changed_when: false
+
+    - name: Check httpd package installation status
+      block:
+        - name: Query httpd package
+          ansible.builtin.command: "rpm -q {{ httpd_package }}"
+          register: rpm_query
+          failed_when: false
+          changed_when: false
+
+        - name: Set package installation status
+          ansible.builtin.set_fact:
+            package_installed: "{{ rpm_query.rc == 0 }}"
+            package_version: "{{ rpm_query.stdout if rpm_query.rc == 0 else 'N/A' }}"
+
+        - name: Display package check result
+          ansible.builtin.debug:
+            msg: "Httpd package check: {{ 'Installed (' + package_version + ')' if package_installed else 'Not installed' }}"
+      rescue:
+        - name: Record package check failure
+          ansible.builtin.set_fact:
+            diagnosis_errors: "{{ diagnosis_errors + ['Failed to check httpd package installation'] }}"
+
+        - name: Display package check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check httpd package installation. Continuing with other checks."
+
+    - name: Check httpd service active status
+      block:
+        - name: Check service active status
+          ansible.builtin.command: "systemctl is-active {{ httpd_service }}"
+          register: svc_active
+          failed_when: false
+          changed_when: false
+
+        - name: Set service active status
+          ansible.builtin.set_fact:
+            service_active: "{{ svc_active.stdout | default('unknown') }}"
+
+        - name: Display service active status
+          ansible.builtin.debug:
+            msg: "Httpd service active status: {{ service_active }}"
+      rescue:
+        - name: Record service active check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check service active status'] }}"
+
+        - name: Display service active check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check service active status. Continuing with other checks."
+
+    - name: Check httpd service enabled status
+      block:
+        - name: Check service enabled status
+          ansible.builtin.command: "systemctl is-enabled {{ httpd_service }}"
+          register: svc_enabled
+          failed_when: false
+          changed_when: false
+
+        - name: Set service enabled status
+          ansible.builtin.set_fact:
+            service_enabled: "{{ svc_enabled.stdout | default('unknown') }}"
+
+        - name: Display service enabled status
+          ansible.builtin.debug:
+            msg: "Httpd service enabled status: {{ service_enabled }}"
+      rescue:
+        - name: Record service enabled check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check service enabled status'] }}"
+
+        - name: Display service enabled check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check service enabled status. Continuing with other checks."
+
+    - name: Check httpd configuration syntax
+      block:
+        - name: Run httpd syntax check
+          ansible.builtin.command: "/usr/sbin/httpd -t"
+          register: httpd_syntax
+          failed_when: false
+          changed_when: false
+
+        - name: Set syntax check result
+          ansible.builtin.set_fact:
+            syntax_check_passed: "{{ httpd_syntax.rc == 0 }}"
+            syntax_check_output: "{{ (httpd_syntax.stdout + ' ' + httpd_syntax.stderr) | trim | default('N/A') }}"
+
+        - name: Display syntax check result
+          ansible.builtin.debug:
+            msg: "Httpd syntax check: {{ 'PASSED' if syntax_check_passed else 'FAILED' }} - {{ syntax_check_output }}"
+      rescue:
+        - name: Record syntax check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to run httpd syntax check'] }}"
+
+        - name: Display syntax check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to run httpd syntax check. Continuing with other checks."
+
+    - name: Check listening ports
+      block:
+        - name: Get listening ports
+          ansible.builtin.command: "ss -lntp"
+          register: ss_listen
+          failed_when: false
+          changed_when: false
+
+        - name: Parse listening ports for httpd
+          ansible.builtin.set_fact:
+            ports_listening: "{{ ss_listen.stdout | default('') }}"
+            ports_listening_raw: "{{ ss_listen.stdout | default('') }}"
+
+        - name: Display port listening check result
+          ansible.builtin.debug:
+            msg: "Port listening check completed. Check report for details."
+      rescue:
+        - name: Record port listening check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check listening ports'] }}"
+
+        - name: Display port listening check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check listening ports. Continuing with other checks."
+
+    - name: Check SELinux mode
+      block:
+        - name: Get SELinux mode
+          ansible.builtin.command: getenforce
+          register: selinux_mode_cmd
+          failed_when: false
+          changed_when: false
+
+        - name: Set SELinux mode
+          ansible.builtin.set_fact:
+            selinux_mode: "{{ selinux_mode_cmd.stdout | default('unknown') }}"
+
+        - name: Display SELinux mode
+          ansible.builtin.debug:
+            msg: "SELinux mode: {{ selinux_mode }}"
+      rescue:
+        - name: Record SELinux mode check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check SELinux mode'] }}"
+
+        - name: Display SELinux mode check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check SELinux mode. Continuing with other checks."
+
+    - name: Check SELinux boolean values
+      block:
+        - name: Get SELinux boolean values
+          ansible.builtin.command: "getsebool {{ item }}"
+          register: selinux_bool_result
+          failed_when: false
+          changed_when: false
+          loop: "{{ selinux_booleans_to_check | default([]) }}"
+
+        - name: Parse SELinux boolean values
+          ansible.builtin.set_fact:
+            selinux_booleans: "{{ selinux_booleans | combine({item.item: item.stdout | default('unknown')}) }}"
+          loop: "{{ selinux_bool_result.results | default([]) }}"
+          when: selinux_bool_result is defined
+
+        - name: Display SELinux boolean check result
+          ansible.builtin.debug:
+            msg: "SELinux boolean check completed. Check report for details."
+      rescue:
+        - name: Record SELinux boolean check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check SELinux boolean values'] }}"
+
+        - name: Display SELinux boolean check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check SELinux boolean values. Continuing with other checks."
+
+    - name: Check firewalld status
+      block:
+        - name: Check firewalld state
+          ansible.builtin.command: firewall-cmd --state
+          register: firewalld_state
+          failed_when: false
+          changed_when: false
+
+        - name: Set firewalld running status
+          ansible.builtin.set_fact:
+            firewalld_running: "{{ firewalld_state.rc == 0 and 'running' in firewalld_state.stdout }}"
+
+        - name: Display firewalld status
+          ansible.builtin.debug:
+            msg: "Firewalld status: {{ 'running' if firewalld_running else 'not running' }}"
+      rescue:
+        - name: Record firewalld status check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check firewalld status'] }}"
+
+        - name: Display firewalld status check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check firewalld status. Continuing with other checks."
+
+    - name: Check firewalld services
+      block:
+        - name: Get firewalld enabled services
+          ansible.builtin.command: firewall-cmd --list-services
+          register: firewalld_services_cmd
+          failed_when: false
+          changed_when: false
+          when: firewalld_running | default(false)
+
+        - name: Set firewalld services
+          ansible.builtin.set_fact:
+            firewalld_services: "{{ firewalld_services_cmd.stdout_lines | default([]) }}"
+          when: firewalld_running | default(false) and firewalld_services_cmd.rc == 0
+
+        - name: Display firewalld services
+          ansible.builtin.debug:
+            msg: "Firewalld services: {{ firewalld_services | join(', ') if firewalld_services | length > 0 else 'N/A' }}"
+          when: firewalld_running | default(false)
+      rescue:
+        - name: Record firewalld services check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check firewalld services'] }}"
+
+        - name: Display firewalld services check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check firewalld services. Continuing with other checks."
+
+    - name: Check firewalld ports
+      block:
+        - name: Get firewalld enabled ports
+          ansible.builtin.command: firewall-cmd --list-ports
+          register: firewalld_ports_cmd
+          failed_when: false
+          changed_when: false
+          when: firewalld_running | default(false)
+
+        - name: Set firewalld ports
+          ansible.builtin.set_fact:
+            firewalld_ports: "{{ firewalld_ports_cmd.stdout_lines | default([]) }}"
+          when: firewalld_running | default(false) and firewalld_ports_cmd.rc == 0
+
+        - name: Display firewalld ports
+          ansible.builtin.debug:
+            msg: "Firewalld ports: {{ firewalld_ports | join(', ') if firewalld_ports | length > 0 else 'N/A' }}"
+          when: firewalld_running | default(false)
+      rescue:
+        - name: Record firewalld ports check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check firewalld ports'] }}"
+
+        - name: Display firewalld ports check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check firewalld ports. Continuing with other checks."
+
+    - name: Check httpd configuration file existence
+      block:
+        - name: Check httpd.conf exists
+          ansible.builtin.stat:
+            path: "{{ httpd_conf_path }}"
+          register: httpd_conf_stat
+          failed_when: false
+          changed_when: false
+
+        - name: Set httpd.conf existence
+          ansible.builtin.set_fact:
+            httpd_conf_exists: "{{ httpd_conf_stat.stat.exists | default(false) }}"
+
+        - name: Display httpd.conf check result
+          ansible.builtin.debug:
+            msg: "Httpd.conf exists: {{ httpd_conf_exists }}"
+      rescue:
+        - name: Record httpd.conf check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check httpd.conf existence'] }}"
+
+        - name: Display httpd.conf check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check httpd.conf existence. Continuing with other checks."
+
+    - name: Check httpd error log
+      block:
+        - name: Check error log file exists
+          ansible.builtin.stat:
+            path: "{{ httpd_error_log }}"
+          register: error_log_stat
+          failed_when: false
+          changed_when: false
+
+        - name: Read error log tail
+          ansible.builtin.command: "tail -n {{ collect_journal_lines | default(200) }} {{ httpd_error_log }}"
+          register: error_log_content_cmd
+          failed_when: false
+          changed_when: false
+          when: error_log_stat.stat.exists | default(false)
+
+        - name: Set error log content
+          ansible.builtin.set_fact:
+            error_log_content: "{{ error_log_content_cmd.stdout | default('(empty or unreadable)') }}"
+          when: error_log_stat.stat.exists | default(false)
+
+        - name: Display error log check result
+          ansible.builtin.debug:
+            msg: "Error log check completed. Check report for details."
+      rescue:
+        - name: Record error log check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check error log'] }}"
+
+        - name: Display error log check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check error log. Continuing with other checks."
+
+    - name: Check journalctl logs
+      block:
+        - name: Get journalctl logs for httpd
+          ansible.builtin.command: "journalctl -u {{ httpd_service }} -n {{ collect_journal_lines | default(200) }} --no-pager"
+          register: journalctl_cmd
+          failed_when: false
+          changed_when: false
+
+        - name: Set journalctl content
+          ansible.builtin.set_fact:
+            journalctl_content: "{{ journalctl_cmd.stdout | default('-- No entries --') }}"
+          when: journalctl_cmd.rc == 0
+
+        - name: Display journalctl check result
+          ansible.builtin.debug:
+            msg: "Journalctl check completed. Check report for details."
+      rescue:
+        - name: Record journalctl check failure
+          ansible.builtin.set_fact:
+            diagnosis_warnings: "{{ diagnosis_warnings + ['Failed to check journalctl logs'] }}"
+
+        - name: Display journalctl check failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check journalctl logs. Continuing with other checks."
+
+    - name: Attempt service start (optional)
+      block:
+        - name: Attempt to start httpd service
+          ansible.builtin.systemd:
+            name: "{{ httpd_service }}"
+            state: started
+          register: service_start_result
+          failed_when: false
+          when: attempt_service_start | default(false)
+
+        - name: Display service start attempt result
+          ansible.builtin.debug:
+            msg: "Service start attempt: {{ 'SUCCESS' if (service_start_result is defined and service_start_result.changed) else 'FAILED or NOT ATTEMPTED' }}"
+          when: attempt_service_start | default(false)
+      rescue:
+        - name: Record service start attempt failure
+          ansible.builtin.set_fact:
+            diagnosis_errors: "{{ diagnosis_errors + ['Failed to start httpd service'] }}"
+          when: attempt_service_start | default(false)
+
+        - name: Display service start attempt failure warning
+          ansible.builtin.debug:
+            msg: "Warning: Failed to start httpd service. This may indicate a configuration or dependency issue."
+          when: attempt_service_start | default(false)
+
+    - name: Generate diagnostic report
+      block:
+        - name: Generate diagnostic report
+          ansible.builtin.template:
+            src: templates/httpd_diagnosis_report.j2
+            dest: "{{ report_output_path }}"
+            owner: root
+            group: root
+            mode: '0644'
+
+        - name: Display report generation success
+          ansible.builtin.debug:
+            msg: "✅ Diagnostic report generated successfully: {{ report_output_path }}"
+      rescue:
+        - name: Record report generation failure
+          ansible.builtin.set_fact:
+            diagnosis_errors: "{{ diagnosis_errors + ['Failed to generate diagnostic report'] }}"
+
+        - name: Display report generation failure warning
+          ansible.builtin.debug:
+            msg: "❌ Warning: Failed to generate diagnostic report. Please check template and permissions."
+
+  post_tasks:
+    - name: Display diagnosis summary
+      ansible.builtin.debug:
+        msg:
+          - "═══════════════════════════════════════════════════════════════"
+          - "🎯 HTTPD SERVICE DIAGNOSIS SUMMARY"
+          - "═══════════════════════════════════════════════════════════════"
+          - "📋 Diagnosis Status:"
+          - "   • Package Installed: {{ '✅ Yes' if package_installed else '❌ No' }}"
+          - "   • Service Active: {{ service_active }}"
+          - "   • Service Enabled: {{ service_enabled }}"
+          - "   • Syntax Check: {{ '✅ PASSED' if syntax_check_passed else '❌ FAILED' }}"
+          - "   • SELinux Mode: {{ selinux_mode }}"
+          - "   • Firewalld Running: {{ '✅ Yes' if firewalld_running else '❌ No' }}"
+          - ""
+          - "{% if diagnosis_errors | length > 0 %}⚠️  Errors encountered: {{ diagnosis_errors | join('; ') }}{% else %}✅ No critical errors{% endif %}"
+          - "{% if diagnosis_warnings | length > 0 %}⚠️  Warnings: {{ diagnosis_warnings | join('; ') }}{% else %}✅ No warnings{% endif %}"
+          - ""
+          - "📝 Report Location: {{ report_output_path }}"
+          - ""
+          - "📝 Next Steps:"
+          - "   • Review the generated diagnostic report"
+          - "   • Address any identified issues based on recommendations"
+          - "   • Check service logs for detailed error information"
+          - "═══════════════════════════════════════════════════════════════"
+      tags: always
+
