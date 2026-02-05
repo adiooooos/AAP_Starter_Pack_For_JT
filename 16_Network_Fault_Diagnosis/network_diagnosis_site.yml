@@ -1,0 +1,113 @@
+---
+# RHEL Network Latency Diagnosis Automation Playbook
+# 
+# Description:
+#   This playbook automates network latency diagnosis for RHEL systems including:
+#   - Network interface status and statistics check
+#   - System-level diagnosis (TCP stats, system logs, load, memory)
+#   - Traffic capture for deep analysis
+#   - Comprehensive diagnostic report generation
+#
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Through Subscription
+#
+# Supported OS:
+#   - RHEL 7/8/9
+#   - CentOS 7/8/9
+#
+# Usage:
+#   ansible-playbook network_diagnosis_site.yml -i inventory
+
+- name: RHEL Network Latency Diagnosis Automation
+  hosts: diagnose
+  gather_facts: yes
+  become: yes
+  
+  pre_tasks:
+    - name: Check OS compatibility
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["RedHat", "CentOS"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      tags: always
+
+    - name: Record analysis start time
+      ansible.builtin.set_fact:
+        analysis_start_time: "{{ ansible_date_time.iso8601 }}"
+        analysis_start_epoch: "{{ ansible_date_time.epoch | int }}"
+      tags: always
+      
+    - name: Display analysis start information
+      ansible.builtin.debug:
+        msg:
+          - "Starting network latency diagnosis for: {{ inventory_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Hostname: {{ ansible_hostname }}"
+          - "Analysis started at: {{ ansible_date_time.iso8601 }}"
+      tags: always
+
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - network_interface is defined
+          - report_output_dir is defined
+        fail_msg: "Required variables are not defined. Please check group_vars/all.yml"
+        success_msg: "All required variables are defined"
+      tags: always
+
+  roles:
+    - role: network_interface
+      tags: 
+        - network_interface
+        - always
+    - role: system_diagnosis
+      tags: 
+        - system_diagnosis
+        - always
+    - role: traffic_capture
+      tags: 
+        - traffic_capture
+        - always
+    - role: report_generation
+      tags: 
+        - report_generation
+        - always
+
+  post_tasks:
+    - name: Record analysis end time
+      ansible.builtin.set_fact:
+        analysis_end_time: "{{ ansible_date_time.iso8601 }}"
+      tags: always
+      
+    - name: Calculate analysis duration
+      ansible.builtin.set_fact:
+        analysis_duration: "{{ (ansible_date_time.epoch | int) - (analysis_start_epoch | int) }}"
+      tags: always
+      
+    - name: Display analysis completion information
+      ansible.builtin.debug:
+        msg:
+          - "═══════════════════════════════════════════════════════════════"
+          - "🎯 NETWORK LATENCY DIAGNOSIS SUMMARY"
+          - "═══════════════════════════════════════════════════════════════"
+          - "📋 Analysis Status:"
+          - "   • Network Interface Check: Check network_interface role summary above"
+          - "   • System Diagnosis: Check system_diagnosis role summary above"
+          - "   • Traffic Capture: Check traffic_capture role summary above"
+          - "   • Report Generation: Check report_generation role summary above"
+          - ""
+          - "⏱️  Analysis Duration: {{ analysis_duration }} seconds"
+          - "📝 Report Location: {{ report_output_dir }}/{{ report_filename }}"
+          - ""
+          - "📝 Next Steps:"
+          - "   • Review the generated diagnostic report"
+          - "   • Analyze captured traffic files if enabled"
+          - "   • Address any identified issues based on recommendations"
+          - "═══════════════════════════════════════════════════════════════"
+      tags: always
+

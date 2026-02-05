@@ -1,0 +1,48 @@
+---
+# Global Variables Configuration
+# Author: GCG AAP SSA Team + v3.01 Date 20260217
+
+# Network interface configuration
+network_interface: "ens192"  #put your network interface name here
+network_interface_backup: "eth0" #put your backup network interface name here
+
+# Traffic capture configuration
+traffic_capture:
+  enabled: true
+  duration: 30
+  packet_count: 1000
+  output_dir: "/var/tmp"
+  filename_prefix: "packet_capture"
+
+# Report configuration
+report_output_dir: "/tmp/network_analysis_reports"
+report_filename: "network_analysis_{{ inventory_hostname }}_{{ ansible_date_time.epoch }}.txt"
+
+# Diagnosis threshold configuration
+diagnosis_thresholds:
+  error_packets: 10
+  dropped_packets: 5
+  overrun_packets: 3
+  tcp_retransmit_rate: 0.1
+
+# System log keywords
+log_keywords:
+  - "bnx2x"
+  - "e1000"
+  - "igb"
+  - "ixgbe"
+  - "network"
+  - "ethtool"
+  - "link"
+  - "carrier"
+
+# Performance configuration
+performance:
+  max_log_lines: 1000
+  timeout_seconds: 30
+  retry_attempts: 3
+
+# Cleanup configuration
+cleanup_temp_files: true
+backup_original_files: true
+

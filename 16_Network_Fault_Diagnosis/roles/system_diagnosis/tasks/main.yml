@@ -1,0 +1,124 @@
+---
+# System Diagnosis Role
+# Performs system-level diagnosis including TCP stats, logs, load, and memory
+
+- name: Initialize system diagnosis status
+  ansible.builtin.set_fact:
+    system_diagnosis_errors: []
+    tcp_retransmit: 0
+    network_log_entries: ""
+    system_load_output: "N/A"
+    memory_usage_output: "N/A"
+
+- name: Check TCP connection statistics
+  block:
+    - name: Check TCP connection statistics
+      ansible.builtin.shell: ss -s
+      register: tcp_stats
+      failed_when: false
+      changed_when: false
+
+    - name: Parse TCP retransmit statistics
+      ansible.builtin.set_fact:
+        tcp_retransmit: "{{ tcp_stats.stdout | regex_search('TCP:\\s*\\d+\\s*\\d+\\s*(\\d+)') | regex_replace('.*TCP:\\s*\\d+\\s*\\d+\\s*(\\d+).*', '\\1') | default('0') | int }}"
+      when: tcp_stats.rc == 0
+
+    - name: Display TCP stats check result
+      ansible.builtin.debug:
+        msg: "TCP statistics check {{ 'succeeded' if tcp_stats.rc == 0 else 'failed' }}"
+  rescue:
+    - name: Record TCP stats check failure
+      ansible.builtin.set_fact:
+        system_diagnosis_errors: "{{ system_diagnosis_errors + ['Failed to check TCP statistics'] }}"
+
+    - name: Display TCP stats check failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to check TCP statistics. Continuing with other checks."
+
+- name: Check system logs for network-related errors
+  block:
+    - name: Check system logs for network-related keywords
+      ansible.builtin.shell: |
+        journalctl --since "1 hour ago" | grep -i "{{ item }}" | tail -{{ performance.max_log_lines | default(1000) }}
+      register: system_logs
+      loop: "{{ log_keywords | default([]) }}"
+      failed_when: false
+      changed_when: false
+
+    - name: Aggregate system log information
+      ansible.builtin.set_fact:
+        network_log_entries: "{{ system_logs.results | map(attribute='stdout') | select('string') | list | join('\n') }}"
+      when: system_logs.results is defined
+
+    - name: Display system logs check result
+      ansible.builtin.debug:
+        msg: "System logs check completed"
+  rescue:
+    - name: Record system logs check failure
+      ansible.builtin.set_fact:
+        system_diagnosis_errors: "{{ system_diagnosis_errors + ['Failed to check system logs'] }}"
+
+    - name: Display system logs check failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to check system logs. Continuing with other checks."
+
+- name: Check system load
+  block:
+    - name: Check system load
+      ansible.builtin.shell: uptime
+      register: system_load
+      failed_when: false
+      changed_when: false
+
+    - name: Store system load output
+      ansible.builtin.set_fact:
+        system_load_output: "{{ system_load.stdout | default('N/A') }}"
+      when: system_load.rc == 0
+
+    - name: Display system load check result
+      ansible.builtin.debug:
+        msg: "System load check {{ 'succeeded' if system_load.rc == 0 else 'failed' }}"
+  rescue:
+    - name: Record system load check failure
+      ansible.builtin.set_fact:
+        system_diagnosis_errors: "{{ system_diagnosis_errors + ['Failed to check system load'] }}"
+
+    - name: Display system load check failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to check system load. Continuing with other checks."
+
+- name: Check memory usage
+  block:
+    - name: Check memory usage
+      ansible.builtin.shell: free -h
+      register: memory_usage
+      failed_when: false
+      changed_when: false
+
+    - name: Store memory usage output
+      ansible.builtin.set_fact:
+        memory_usage_output: "{{ memory_usage.stdout | default('N/A') }}"
+      when: memory_usage.rc == 0
+
+    - name: Display memory usage check result
+      ansible.builtin.debug:
+        msg: "Memory usage check {{ 'succeeded' if memory_usage.rc == 0 else 'failed' }}"
+  rescue:
+    - name: Record memory usage check failure
+      ansible.builtin.set_fact:
+        system_diagnosis_errors: "{{ system_diagnosis_errors + ['Failed to check memory usage'] }}"
+
+    - name: Display memory usage check failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to check memory usage. Continuing with other checks."
+
+- name: Report system diagnosis summary
+  ansible.builtin.debug:
+    msg:
+      - "=== System Diagnosis Summary ==="
+      - "TCP Retransmit: {{ tcp_retransmit }}"
+      - "System Load: {{ system_load_output }}"
+      - "Memory Usage: {{ memory_usage_output.split('\n')[1] if memory_usage_output != 'N/A' and '\n' in memory_usage_output else memory_usage_output }}"
+      - "{% if network_log_entries != '' %}Network Log Entries Found: Yes{% else %}Network Log Entries Found: No{% endif %}"
+      - "{% if system_diagnosis_errors | length > 0 %}⚠️  Errors encountered: {{ system_diagnosis_errors | join('; ') }}{% else %}✅ All system diagnosis checks completed{% endif %}"
+
