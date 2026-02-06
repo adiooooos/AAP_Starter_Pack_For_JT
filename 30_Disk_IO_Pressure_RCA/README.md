@@ -5,6 +5,10 @@
 This playbook automates disk IO pressure investigation and root cause analysis on RHEL/CentOS systems. It collects detailed disk IO statistics, identifies top IO-consuming processes, detects processes stuck in Disk Sleep (D state / uninterruptible sleep), and generates structured JSON investigation reports.  
 
 The playbook is designed for production environments and is **read-only**: it does **not** kill processes, change kernel parameters, or modify storage configuration. It focuses on investigation and reporting so that administrators can make informed decisions about remediation.
+### screenshots
+<img width="2031" height="1195" alt="image" src="https://github.com/user-attachments/assets/1c525ed5-ee8c-4912-991a-c3848c2c54bc" />
+<img width="2536" height="564" alt="image" src="https://github.com/user-attachments/assets/deba938d-ecf5-4fdd-9e43-d5e69ac8d8d5" />
+
 
 ## Features
 
@@ -303,5 +307,6 @@ This is usually a **good** sign and indicates no obvious IO blocking from proces
 ## Author
 
 GCG AAP SSA Team + v3.01 20260217
+
 
 
