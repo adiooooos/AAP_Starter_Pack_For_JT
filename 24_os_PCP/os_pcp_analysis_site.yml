@@ -1,0 +1,329 @@
+# ============================================================================
+# Playbook: RHEL OS Performance Analysis with PCP
+# ============================================================================
+#
+# Description:
+#   This playbook automates RHEL system performance analysis using Performance
+#   Co-Pilot (PCP). It performs the following tasks:
+#   1. Installs and configures PCP on target hosts
+#   2. Collects comprehensive real-time and historical performance data
+#   3. Generates a detailed Markdown format report on the Ansible control node
+#
+# Author: GCG AAP SSA Team + v3.00 20260112
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+# ============================================================================
+# Play 1: Install and Configure PCP on Target Hosts
+# ============================================================================
+- name: "Play 1: Install and Configure PCP"
+  hosts: pcp_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    pcp_packages:
+      - pcp
+      - pcp-system-tools
+    pcp_services:
+      - pmcd
+      - pmlogger
+
+  tasks:
+    # ========================================================================
+    # OS Compatibility Validation
+    # ========================================================================
+    - name: "Validate OS compatibility"
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["RedHat", "CentOS"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS. Supported: RHEL/CentOS 7/8/9"
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags:
+        - validation
+        - always
+
+    # ========================================================================
+    # Install PCP Packages
+    # ========================================================================
+    - name: "Install PCP packages"
+      ansible.builtin.package:
+        name: "{{ pcp_packages }}"
+        state: present
+      register: pcp_install_result
+      ignore_errors: true
+
+    - name: "Display PCP installation status"
+      ansible.builtin.debug:
+        msg: "PCP packages installation {{ 'succeeded' if not pcp_install_result.failed else 'failed' }}"
+      when: pcp_install_result is defined
+
+    # ========================================================================
+    # Start and Enable PCP Services
+    # ========================================================================
+    - name: "Start and enable PCP services"
+      block:
+        - name: "Ensure PCP services are started and enabled"
+          ansible.builtin.service:
+            name: "{{ item }}"
+            state: started
+            enabled: true
+          loop: "{{ pcp_services }}"
+          register: pcp_service_result
+
+        - name: "Display PCP service status"
+          ansible.builtin.debug:
+            msg: "PCP services configured successfully"
+      rescue:
+        - name: "Handle PCP service configuration failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to configure PCP services. Some performance data collection may fail."
+          ignore_errors: true
+
+    # ========================================================================
+    # Verify PCP Installation
+    # ========================================================================
+    - name: "Verify PCP installation"
+      ansible.builtin.command: which pmcd
+      register: pcp_verify_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display PCP verification result"
+      ansible.builtin.debug:
+        msg: "PCP installation verification: {{ 'success' if not pcp_verify_result.failed else 'failed' }}"
+
+# ============================================================================
+# Play 2: Collect Comprehensive Performance Data
+# ============================================================================
+- name: "Play 2: Collect Comprehensive Performance Data"
+  hosts: pcp_servers
+  become: true
+  gather_facts: false
+
+  tasks:
+    # ========================================================================
+    # 1. Get PCP System Overview
+    # ========================================================================
+    - name: "Get PCP system overview"
+      ansible.builtin.command: pcp
+      register: pcp_overview_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display PCP overview collection status"
+      ansible.builtin.debug:
+        msg: "PCP overview collection {{ 'succeeded' if not pcp_overview_result.failed else 'failed' }}"
+      when: pcp_overview_result is defined
+
+    # ========================================================================
+    # 2. Get System Load and Uptime
+    # ========================================================================
+    - name: "Get system load and uptime"
+      ansible.builtin.command: pcp uptime
+      register: pcp_uptime_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display uptime collection status"
+      ansible.builtin.debug:
+        msg: "Uptime collection {{ 'succeeded' if not pcp_uptime_result.failed else 'failed' }}"
+      when: pcp_uptime_result is defined
+
+    # ========================================================================
+    # 3. Get Memory Usage (in MB)
+    # ========================================================================
+    - name: "Get memory usage (in MB)"
+      ansible.builtin.command: pcp free -m
+      register: pcp_free_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display memory collection status"
+      ansible.builtin.debug:
+        msg: "Memory usage collection {{ 'succeeded' if not pcp_free_result.failed else 'failed' }}"
+      when: pcp_free_result is defined
+
+    # ========================================================================
+    # 4. Get NUMA Architecture Statistics
+    # ========================================================================
+    - name: "Get NUMA architecture statistics"
+      ansible.builtin.command: pcp numastat
+      register: pcp_numastat_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display NUMA statistics collection status"
+      ansible.builtin.debug:
+        msg: "NUMA statistics collection {{ 'succeeded' if not pcp_numastat_result.failed else 'failed' }}"
+      when: pcp_numastat_result is defined
+
+    # ========================================================================
+    # 5. Get Disk I/O Statistics (similar to iostat)
+    # ========================================================================
+    - name: "Get disk I/O statistics"
+      ansible.builtin.command: pcp iostat -x
+      register: pcp_iostat_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display disk I/O collection status"
+      ansible.builtin.debug:
+        msg: "Disk I/O statistics collection {{ 'succeeded' if not pcp_iostat_result.failed else 'failed' }}"
+      when: pcp_iostat_result is defined
+
+    # ========================================================================
+    # 6. Get Top 5 Processes by CPU Usage (similar to pidstat)
+    # ========================================================================
+    - name: "Get top 5 processes by CPU usage"
+      ansible.builtin.shell: pcp pidstat -u | head -n 8
+      register: pcp_pidstat_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display process statistics collection status"
+      ansible.builtin.debug:
+        msg: "Process statistics collection {{ 'succeeded' if not pcp_pidstat_result.failed else 'failed' }}"
+      when: pcp_pidstat_result is defined
+
+    # ========================================================================
+    # 7. Get Detailed Description of 'kernel.all.load' Metric (pminfo)
+    # ========================================================================
+    - name: "Get detailed description of kernel.all.load metric"
+      ansible.builtin.command: pminfo -T kernel.all.load
+      register: pminfo_load_desc_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display metric description collection status"
+      ansible.builtin.debug:
+        msg: "Metric description collection {{ 'succeeded' if not pminfo_load_desc_result.failed else 'failed' }}"
+      when: pminfo_load_desc_result is defined
+
+    # ========================================================================
+    # 8. Extract Summary Information from Historical Archive (pmlogsummary)
+    # ========================================================================
+    - name: "Extract summary from historical archive"
+      ansible.builtin.command: pmlogsummary -l kernel.all.cpu.user disk.all.total
+      register: pmlogsummary_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display historical summary collection status"
+      ansible.builtin.debug:
+        msg: "Historical summary collection {{ 'succeeded' if not pmlogsummary_result.failed else 'failed' }}"
+      when: pmlogsummary_result is defined
+
+# ============================================================================
+# Play 3: Generate and Display Performance Report
+# ============================================================================
+- name: "Play 3: Generate and Display Performance Report"
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    report_filename: "integrated_pcp_report_{{ ansible_date_time.date }}.md"
+    report_output_dir: "./reports"
+
+    report_template_content: |
+      # RHEL Performance Analysis Report (Generated by PCP and Ansible)
+
+      **Report Generation Time:** {{ ansible_date_time.iso8601 }}
+
+      ---
+
+      {% for host in groups['pcp_servers'] %}
+      ## 🎯 Host: {{ host }}
+
+      ### 1. System Overview (PCP)
+      This section displays PCP configuration, hardware summary, and running agents, providing the first step to understand the monitoring environment.
+      ```text
+      {% if hostvars[host].pcp_overview_result is defined and not hostvars[host].pcp_overview_result.failed %}{{ hostvars[host].pcp_overview_result.stdout }}{% else %}Error: {{ hostvars[host].pcp_overview_result.stderr | default('Failed to execute pcp command') if hostvars[host].pcp_overview_result is defined else 'PCP overview data not available' }}{% endif %}
+      ```
+
+      ### 2. System Load and Uptime
+      Displays current time, system uptime, number of logged-in users, and load averages for the past 1, 5, and 15 minutes.
+      ```text
+      {% if hostvars[host].pcp_uptime_result is defined and not hostvars[host].pcp_uptime_result.failed %}{{ hostvars[host].pcp_uptime_result.stdout }}{% else %}Error: {{ hostvars[host].pcp_uptime_result.stderr | default('Failed to execute pcp uptime command') if hostvars[host].pcp_uptime_result is defined else 'Uptime data not available' }}{% endif %}
+      ```
+
+      ### 3. Memory Usage
+      Provides detailed information about physical memory (Mem) and swap space (Swap), including total, used, available, etc., in MB.
+      ```text
+      {% if hostvars[host].pcp_free_result is defined and not hostvars[host].pcp_free_result.failed %}{{ hostvars[host].pcp_free_result.stdout }}{% else %}Error: {{ hostvars[host].pcp_free_result.stderr | default('Failed to execute pcp free -m command') if hostvars[host].pcp_free_result is defined else 'Memory data not available' }}{% endif %}
+      ```
+
+      ### 4. NUMA Architecture Statistics
+      Displays Non-Uniform Memory Access statistics, crucial for performance tuning on servers with multiple physical CPUs.
+      ```text
+      {% if hostvars[host].pcp_numastat_result is defined and not hostvars[host].pcp_numastat_result.failed %}{{ hostvars[host].pcp_numastat_result.stdout }}{% else %}Error: {{ hostvars[host].pcp_numastat_result.stderr | default('Failed to execute pcp numastat command') if hostvars[host].pcp_numastat_result is defined else 'NUMA statistics not available' }}{% endif %}
+      ```
+
+      ### 5. Disk I/O Statistics
+      Shows key I/O metrics for each block device, including read/write rates, queue length, average wait time, etc.
+      ```text
+      {% if hostvars[host].pcp_iostat_result is defined and not hostvars[host].pcp_iostat_result.failed %}{{ hostvars[host].pcp_iostat_result.stdout }}{% else %}Error: {{ hostvars[host].pcp_iostat_result.stderr | default('Failed to execute pcp iostat -x command') if hostvars[host].pcp_iostat_result is defined else 'Disk I/O data not available' }}{% endif %}
+      ```
+
+      ### 6. Top 5 Processes by CPU Usage
+      Lists processes currently consuming the most CPU resources, helping to quickly identify performance bottlenecks.
+      ```text
+      {% if hostvars[host].pcp_pidstat_result is defined and not hostvars[host].pcp_pidstat_result.failed %}{{ hostvars[host].pcp_pidstat_result.stdout }}{% else %}Error: {{ hostvars[host].pcp_pidstat_result.stderr | default('Failed to execute pcp pidstat command') if hostvars[host].pcp_pidstat_result is defined else 'Process statistics not available' }}{% endif %}
+      ```
+
+      ### 7. Metric Description
+      Through the `pminfo` tool, we can gain deep insights into the meaning of any PCP metric. Using system load as an example:
+      ```text
+      {% if hostvars[host].pminfo_load_desc_result is defined and not hostvars[host].pminfo_load_desc_result.failed %}{{ hostvars[host].pminfo_load_desc_result.stdout }}{% else %}Error: {{ hostvars[host].pminfo_load_desc_result.stderr | default('Failed to execute pminfo command') if hostvars[host].pminfo_load_desc_result is defined else 'Metric description not available' }}{% endif %}
+      ```
+
+      ### 8. Historical Performance Summary
+      `pmlogger` continuously archives performance data. `pmlogsummary` can calculate average values of key metrics from the latest archive, reflecting overall trends over a period of time.
+      ```text
+      {% if hostvars[host].pmlogsummary_result is defined and not hostvars[host].pmlogsummary_result.failed %}{{ hostvars[host].pmlogsummary_result.stdout }}{% else %}Error: {{ hostvars[host].pmlogsummary_result.stderr | default('Failed to execute pmlogsummary command') if hostvars[host].pmlogsummary_result is defined else 'Historical summary not available' }}{% endif %}
+      ```
+      ---
+      {% endfor %}
+
+  tasks:
+    # ========================================================================
+    # Create Reports Directory
+    # ========================================================================
+    - name: "Create reports directory"
+      ansible.builtin.file:
+        path: "{{ report_output_dir }}"
+        state: directory
+        mode: '0755'
+      ignore_errors: true
+
+    # ========================================================================
+    # Generate Markdown Report
+    # ========================================================================
+    - name: "Generate Markdown format report using embedded template variables"
+      ansible.builtin.copy:
+        content: "{{ report_template_content }}"
+        dest: "{{ report_output_dir }}/{{ report_filename }}"
+        mode: '0644'
+      register: report_generation_result
+
+    # ========================================================================
+    # Display Report Path and Summary
+    # ========================================================================
+    - name: "Display report path and content summary"
+      ansible.builtin.debug:
+        msg: |
+          =====================================================================
+          ✅ Performance report has been successfully generated!
+
+          Report saved to: {{ report_output_dir }}/{{ report_filename }}
+
+          Please open this Markdown file to view the detailed report.
+          =====================================================================
+

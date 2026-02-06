@@ -8,6 +8,8 @@ Test-RHEL-7.9-1
 # Using the standard inventory format:
 [rhel7]
 Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
 
 [rhel8]
 TEST-RHEL-8.9-1
@@ -18,3 +20,6 @@ ansible25.example.com
 # Group all RHEL hosts as pcp_servers
 [pcp_servers:children]
 rhel7
+rhel8
+rhel9
+
