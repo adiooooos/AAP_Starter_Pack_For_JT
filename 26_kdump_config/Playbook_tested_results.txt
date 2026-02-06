@@ -1,0 +1,184 @@
+[root@aap25 26_kdump_config]# ansible-playbook kdumpconfig_site.yml -i inventory  -C
+[DEPRECATION WARNING]: [defaults]collections_paths option, does not fit var naming standard, use the singular form collections_path instead. This feature will be
+removed from ansible-core in version 2.19. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+
+PLAY [Play 1: Configure Kdump Service] *********************************************************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Validate OS compatibility] ***************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+
+TASK [Display OS information] ******************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "OS Distribution: RedHat",
+        "OS Version: 7.9",
+        "OS Major Version: 7",
+        "Architecture: x86_64"
+    ]
+}
+
+TASK [Validate kdump_dump_target parameter] ****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Kdump dump target validated: Local"
+}
+
+TASK [Validate kdump_local_path parameter] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Kdump local path validated: /var/crash"
+}
+
+TASK [Validate kdump_nfs_server parameter] *****************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Validate kdump_ssh_server parameter] *****************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Validate kdump_raw_device parameter] *****************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Validate kdump_dump_level parameter] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Kdump dump level validated: 31"
+}
+
+TASK [Validate kdump_failure_action parameter] *************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "changed": false,
+    "msg": "Kdump failure action validated: reboot"
+}
+
+TASK [Install kexec-tools package] *************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Display kexec-tools installation status] *************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "kexec-tools package installed successfully"
+}
+
+TASK [Unmask kdump service] ********************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Display kdump service unmask status] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Kdump service unmasked successfully"
+}
+
+TASK [Reset crashkernel using kdumpctl (RHEL 9+)] **********************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Display crashkernel reset status] ********************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Generate kdump.conf content based on variables] ******************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Display generated kdump.conf content preview] ********************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Generated kdump.conf content:\n# This file is managed by Ansible. Do not edit manually.\npath /var/crash\ncore_collector makedumpfile -c --message-level 7 -d 31\ndefault reboot\n"
+}
+
+TASK [Write generated configuration to /etc/kdump.conf] ****************************************************************************************************************
+changed: [Test-RHEL-7.9-1]
+
+TASK [Display kdump.conf write status] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Kdump configuration file written successfully"
+}
+
+TASK [Verify kdump.conf file exists] ***********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Display kdump.conf file verification] ****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Kdump configuration file exists"
+}
+
+TASK [Propagate SSH keys using kdumpctl] *******************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Display SSH key propagation status] ******************************************************************************************************************************
+skipping: [Test-RHEL-7.9-1]
+
+TASK [Build sysctl configuration list] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => (item={'key': 'kernel.sysrq', 'value': '1', 'when': 'kdump_panic_triggers.system_hang | default(false)'})
+ok: [Test-RHEL-7.9-1] => (item={'key': 'kernel.unknown_nmi_panic', 'value': '1', 'when': "(kdump_panic_triggers.system_hang | default(false)) and ansible_architecture == 'x86_64'"})
+ok: [Test-RHEL-7.9-1] => (item={'key': 'kernel.panic_on_io_nmi', 'value': '1', 'when': "(kdump_panic_triggers.system_hang | default(false)) and ansible_architecture == 'x86_64'"})
+ok: [Test-RHEL-7.9-1] => (item={'key': 'kernel.panic_on_unrecovered_nmi', 'value': '1', 'when': "(kdump_panic_triggers.system_hang | default(false)) and ansible_architecture == 'x86_64'"})
+ok: [Test-RHEL-7.9-1] => (item={'key': 'vm.panic_on_oom', 'value': '1', 'when': 'kdump_panic_triggers.oom_killer | default(false)'})
+ok: [Test-RHEL-7.9-1] => (item={'key': 'kernel.softlockup_panic', 'value': '1', 'when': 'kdump_panic_triggers.soft_lockup | default(false)'})
+ok: [Test-RHEL-7.9-1] => (item={'key': 'kernel.hung_task_panic', 'value': '1', 'when': 'kdump_panic_triggers.process_d_state | default(false)'})
+
+TASK [Configure sysctl parameters for panic triggers] ******************************************************************************************************************
+changed: [Test-RHEL-7.9-1] => (item={'key': 'kernel.sysrq', 'value': '1', 'when': 'kdump_panic_triggers.system_hang | default(false)'})
+changed: [Test-RHEL-7.9-1] => (item={'key': 'kernel.unknown_nmi_panic', 'value': '1', 'when': "(kdump_panic_triggers.system_hang | default(false)) and ansible_architecture == 'x86_64'"})
+changed: [Test-RHEL-7.9-1] => (item={'key': 'kernel.panic_on_io_nmi', 'value': '1', 'when': "(kdump_panic_triggers.system_hang | default(false)) and ansible_architecture == 'x86_64'"})
+changed: [Test-RHEL-7.9-1] => (item={'key': 'kernel.panic_on_unrecovered_nmi', 'value': '1', 'when': "(kdump_panic_triggers.system_hang | default(false)) and ansible_architecture == 'x86_64'"})
+changed: [Test-RHEL-7.9-1] => (item={'key': 'vm.panic_on_oom', 'value': '1', 'when': 'kdump_panic_triggers.oom_killer | default(false)'})
+changed: [Test-RHEL-7.9-1] => (item={'key': 'kernel.softlockup_panic', 'value': '1', 'when': 'kdump_panic_triggers.soft_lockup | default(false)'})
+changed: [Test-RHEL-7.9-1] => (item={'key': 'kernel.hung_task_panic', 'value': '1', 'when': 'kdump_panic_triggers.process_d_state | default(false)'})
+
+TASK [Display sysctl configuration status] *****************************************************************************************************************************
+fatal: [Test-RHEL-7.9-1]: FAILED! => {"msg": "The task includes an option with an undefined variable. The error was: 'dict object' has no attribute 'failed'. 'dict object' has no attribute 'failed'\n\nThe error appears to be in '/home/admin/aap/controller/data/projects/starter_pack/26_kdump_config/kdumpconfig_site.yml': line 366, column 11, but may\nbe elsewhere in the file depending on the exact syntax problem.\n\nThe offending line appears to be:\n\n\n        - name: \"Display sysctl configuration status\"\n          ^ here\n"}
+
+TASK [Handle sysctl configuration failure] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Warning: Failed to configure sysctl panic triggers. Some panic conditions may not trigger kdump."
+}
+
+TASK [Restart kdump service] *******************************************************************************************************************************************
+changed: [Test-RHEL-7.9-1]
+
+TASK [Display kdump service status] ************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": "Kdump service restarted and enabled successfully"
+}
+
+TASK [Verify kdump service status] *************************************************************************************************************************************
+ok: [Test-RHEL-7.9-1]
+
+TASK [Display kdump service verification] ******************************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "Kdump service ActiveState: active",
+        "Kdump service UnitFileState: enabled"
+    ]
+}
+
+TASK [Final report: Display configuration summary] *********************************************************************************************************************
+ok: [Test-RHEL-7.9-1] => {
+    "msg": [
+        "==========================================",
+        "Kdump Service Configuration Completed!",
+        "==========================================",
+        "Dump Target: Local",
+        "Local Path: /var/crash",
+        "",
+        "",
+        "",
+        "Dump Level: 31",
+        "Failure Action: reboot",
+        "Panic Triggers:",
+        "  - System Hang: True",
+        "  - OOM Killer: True",
+        "  - Soft Lockup: True",
+        "  - Hung Task: True",
+        "==========================================",
+        "Verification commands:",
+        "  systemctl status kdump",
+        "  cat /etc/kdump.conf",
+        "  cat /proc/cmdline | grep crashkernel",
+        "=========================================="
+    ]
+}
+
+PLAY RECAP *************************************************************************************************************************************************************
+Test-RHEL-7.9-1            : ok=25   changed=3    unreachable=0    failed=0    skipped=7    rescued=1    ignored=0
