@@ -5,6 +5,12 @@
 This playbook automates security baseline auditing for privileged accounts and sudo configurations on RHEL/CentOS systems. It checks for non-root users with UID 0 (rogue root users), audits sudoers files for NOPASSWD entries, identifies accounts with empty passwords, and generates comprehensive security audit reports. The playbook is designed for production environments and focuses on investigation and reporting only—it does NOT modify system state or remove users, allowing administrators to make informed decisions about remediation.
 
 The playbook generates comprehensive JSON format reports that include security findings, severity levels, and remediation recommendations. Reports are automatically collected back to the control node for centralized analysis and monitoring.
+### screenshots
+
+<img width="2031" height="1325" alt="image" src="https://github.com/user-attachments/assets/5b0e990a-dbea-4608-97dc-701c37a6ab67" />
+
+<img width="2536" height="653" alt="image" src="https://github.com/user-attachments/assets/3577a12a-2c3d-4455-8c5f-e1bf34770dcd" />
+
 
 ## Features
 
@@ -442,4 +448,5 @@ For issues or questions:
 ## Author
 
 GCG AAP SSA Team + v3.01 20260217
+
 
