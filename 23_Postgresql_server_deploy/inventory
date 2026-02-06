@@ -1,0 +1,27 @@
+[postgres_servers]
+# Define target PostgreSQL servers here
+# Example:
+# postgres-server-01 ansible_host=192.168.1.100
+# postgres-server-02 ansible_host=192.168.1.101
+# postgres-cluster-01 ansible_host=192.168.1.102
+Test-RHEL-7.9-3
+
+# Using the standard inventory format:
+[rhel7]
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+
+# Group all RHEL hosts as postgres_servers
+[postgres_servers:children]
+rhel7
+
+
+# Define PostgreSQL instances to be created
+# Note: Complex variables like postgres_instances are defined in group_vars/postgres_servers.yml
+# This allows proper YAML syntax for lists and dictionaries
+
