@@ -1,0 +1,73 @@
+[root@aap25 23_Postgresql_server_deploy]# ansible-playbook postgresql_simple_deploy.yml -i inventory
+[DEPRECATION WARNING]: [defaults]collections_paths option, does not fit var naming standard, use the singular form collections_path instead. This feature will be
+removed from ansible-core in version 2.19. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+
+PLAY [Simple PostgreSQL Deployment] ************************************************************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Validate OS compatibility] ***************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+
+TASK [Install PostgreSQL packages] *************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check if PostgreSQL is already initialized] **********************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Ensure PostgreSQL data directory exists] *************************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Initialize PostgreSQL database (RHEL 7)] *************************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Initialize PostgreSQL database (RHEL 8/9)] ***********************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Verify PostgreSQL initialization] ********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Display initialization status] ***********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "PostgreSQL initialization status: Initialized"
+}
+
+TASK [Fail if PostgreSQL initialization failed] ************************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Ensure data directory permissions are correct] *******************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Configure PostgreSQL Unix socket directory] **********************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+
+TASK [Configure PostgreSQL port] ***************************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+
+TASK [Start and enable PostgreSQL service] *****************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+
+TASK [Display service start status] ************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": "PostgreSQL service started and enabled"
+}
+
+TASK [Check PostgreSQL service status] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Display PostgreSQL status] ***************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "PostgreSQL deployment completed successfully!",
+        "Service status: active",
+        "Data directory: /var/lib/pgsql/data",
+        "Port: 5432"
+    ]
+}
+
+PLAY RECAP *************************************************************************************************************************************************************
+Test-RHEL-7.9-3            : ok=13   changed=3    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0

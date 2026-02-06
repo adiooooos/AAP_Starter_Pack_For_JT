@@ -1,0 +1,190 @@
+# ============================================================================
+# Playbook: Simple PostgreSQL Single Instance Deployment
+# ============================================================================
+#
+# Description:
+#   This is a simplified playbook for deploying a single PostgreSQL instance
+#   on RHEL/CentOS hosts. It installs PostgreSQL, initializes the database,
+#   and starts the service.
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+- name: "Simple PostgreSQL Deployment"
+  hosts: postgres_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    postgresql_port: 5432
+    postgresql_data_dir: "/var/lib/pgsql/data"
+
+  tasks:
+    # ========================================================================
+    # OS Compatibility Validation
+    # ========================================================================
+    - name: "Validate OS compatibility"
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["RedHat", "CentOS"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS. Supported: RHEL/CentOS 7/8/9"
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags:
+        - validation
+        - always
+
+    # ========================================================================
+    # Install PostgreSQL
+    # ========================================================================
+    - name: "Install PostgreSQL packages"
+      ansible.builtin.yum:
+        name:
+          - postgresql-server
+          - postgresql
+        state: present
+      tags:
+        - installation
+
+    # ========================================================================
+    # Initialize PostgreSQL Database
+    # ========================================================================
+    - name: "Check if PostgreSQL is already initialized"
+      ansible.builtin.stat:
+        path: "{{ postgresql_data_dir }}/PG_VERSION"
+      register: pg_version_check
+      tags:
+        - configuration
+
+    - name: "Ensure PostgreSQL data directory exists"
+      ansible.builtin.file:
+        path: "{{ postgresql_data_dir }}"
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: '0700'
+      when: not pg_version_check.stat.exists
+      tags:
+        - configuration
+
+    - name: "Initialize PostgreSQL database (RHEL 7)"
+      ansible.builtin.command: postgresql-setup initdb
+      args:
+        creates: "{{ postgresql_data_dir }}/PG_VERSION"
+      when: 
+        - not pg_version_check.stat.exists
+        - ansible_distribution_major_version == "7"
+      tags:
+        - configuration
+
+    - name: "Initialize PostgreSQL database (RHEL 8/9)"
+      ansible.builtin.command: postgresql-setup --initdb
+      args:
+        creates: "{{ postgresql_data_dir }}/PG_VERSION"
+      when: 
+        - not pg_version_check.stat.exists
+        - ansible_distribution_major_version in ["8", "9"]
+      tags:
+        - configuration
+
+    - name: "Verify PostgreSQL initialization"
+      ansible.builtin.stat:
+        path: "{{ postgresql_data_dir }}/PG_VERSION"
+      register: pg_init_verify
+      tags:
+        - configuration
+
+    - name: "Display initialization status"
+      ansible.builtin.debug:
+        msg: "PostgreSQL initialization status: {{ 'Initialized' if pg_init_verify.stat.exists else 'Not initialized' }}"
+      tags:
+        - configuration
+        - debug
+
+    - name: "Fail if PostgreSQL initialization failed"
+      ansible.builtin.fail:
+        msg: "PostgreSQL database initialization failed. Please check logs and try again."
+      when: not pg_init_verify.stat.exists
+      tags:
+        - configuration
+
+    - name: "Ensure data directory permissions are correct"
+      ansible.builtin.file:
+        path: "{{ postgresql_data_dir }}"
+        owner: postgres
+        group: postgres
+        mode: '0700'
+        recurse: false
+      when: pg_init_verify.stat.exists
+      tags:
+        - configuration
+
+    # ========================================================================
+    # Configure PostgreSQL
+    # ========================================================================
+    - name: "Configure PostgreSQL Unix socket directory"
+      ansible.builtin.lineinfile:
+        path: "{{ postgresql_data_dir }}/postgresql.conf"
+        regexp: '^#?unix_socket_directories\s*='
+        line: "unix_socket_directories = '{{ postgresql_data_dir }}'"
+        backup: true
+      when: pg_init_verify.stat.exists
+      tags:
+        - configuration
+
+    - name: "Configure PostgreSQL port"
+      ansible.builtin.lineinfile:
+        path: "{{ postgresql_data_dir }}/postgresql.conf"
+        regexp: '^#?port\s*='
+        line: "port = {{ postgresql_port }}"
+        backup: true
+      when: pg_init_verify.stat.exists
+      tags:
+        - configuration
+
+    # ========================================================================
+    # Start and Enable PostgreSQL Service
+    # ========================================================================
+    - name: "Start and enable PostgreSQL service"
+      ansible.builtin.service:
+        name: postgresql
+        state: started
+        enabled: true
+      when: pg_init_verify.stat.exists
+      tags:
+        - configuration
+
+    - name: "Display service start status"
+      ansible.builtin.debug:
+        msg: "PostgreSQL service started and enabled"
+      when: pg_init_verify.stat.exists
+      tags:
+        - configuration
+        - debug
+
+    # ========================================================================
+    # Verify PostgreSQL Installation
+    # ========================================================================
+    - name: "Check PostgreSQL service status"
+      ansible.builtin.systemd:
+        name: postgresql
+      register: postgresql_status
+      tags:
+        - verification
+
+    - name: "Display PostgreSQL status"
+      ansible.builtin.debug:
+        msg:
+          - "PostgreSQL deployment completed successfully!"
+          - "Service status: {{ postgresql_status.status.ActiveState }}"
+          - "Data directory: {{ postgresql_data_dir }}"
+          - "Port: {{ postgresql_port }}"
+      tags:
+        - verification
+
