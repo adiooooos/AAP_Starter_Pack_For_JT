@@ -1,0 +1,21 @@
+[zombie_investigation]
+# Define target hosts for zombie process investigation here
+# Example:
+# server-01 ansible_host=192.168.1.100
+# server-02 ansible_host=192.168.1.101
+Test-RHEL-7.9-3
+
+# Using the standard inventory format:
+[rhel7]
+Test-RHEL-7.9-1
+Test-RHEL-7.9-2
+Test-RHEL-7.9-3
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+
+
+
