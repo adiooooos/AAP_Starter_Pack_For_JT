@@ -1,0 +1,20 @@
+[pcp_servers]
+# Define target hosts for PCP performance analysis here
+# Example:
+# rhel-server-01 ansible_host=192.168.1.100
+# rhel-server-02 ansible_host=192.168.1.101
+Test-RHEL-7.9-1
+
+# Using the standard inventory format:
+[rhel7]
+Test-RHEL-7.9-1
+
+[rhel8]
+TEST-RHEL-8.9-1
+
+[rhel9]
+ansible25.example.com
+
+# Group all RHEL hosts as pcp_servers
+[pcp_servers:children]
+rhel7
