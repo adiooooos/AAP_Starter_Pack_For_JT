@@ -1,0 +1,339 @@
+# ============================================================================
+# Playbook: Zombie Process Root Cause Analysis and Reporting
+# ============================================================================
+#
+# Description:
+#   This playbook automates zombie process investigation and root cause analysis
+#   on RHEL/CentOS systems. It performs the following tasks:
+#   1. Validates OS compatibility and prerequisites
+#   2. Identifies all zombie processes (Z state) in the system
+#   3. Analyzes parent process (PPID) information for each zombie
+#   4. Generates detailed investigation reports with parent-child relationships
+#   5. Saves reports to local files for further analysis
+#
+#   This playbook is designed for production environments and does NOT perform
+#   aggressive kill operations. It focuses on investigation and reporting only,
+#   allowing administrators to make informed decisions about remediation.
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+# ============================================================================
+# Play 1: Zombie Process Investigation and Reporting
+# ============================================================================
+- name: "Play 1: Zombie Process Investigation and Reporting"
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    # --- Core Configuration Variables ---
+    # Report file path on target host
+    report_path: "/tmp/zombie_investigation_{{ ansible_hostname }}.json"
+    
+    # Report collection destination on control node
+    report_dest_path: "./reports/"
+
+  tasks:
+    # ========================================================================
+    # OS Compatibility Validation
+    # ========================================================================
+    - name: "Validate OS compatibility"
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["RedHat", "CentOS"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS. Supported: RHEL/CentOS 7/8/9"
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags:
+        - validation
+        - always
+
+    - name: "Display OS information"
+      ansible.builtin.debug:
+        msg:
+          - "OS Distribution: {{ ansible_distribution }}"
+          - "OS Version: {{ ansible_distribution_version }}"
+          - "OS Major Version: {{ ansible_distribution_major_version }}"
+          - "Hostname: {{ ansible_hostname }}"
+      tags:
+        - validation
+        - debug
+
+    # ========================================================================
+    # Task 1: Find Zombie Processes (Z state)
+    # ========================================================================
+    - name: "Task 1: Find zombie processes (Z state)"
+      block:
+        - name: "Query all processes with state information"
+          ansible.builtin.command: "ps -eo pid,ppid,state,comm,args"
+          register: ps_output
+          changed_when: false
+          failed_when: false
+
+        - name: "Display process query status"
+          ansible.builtin.debug:
+            msg:
+              - "Process query completed"
+              - "Total processes scanned: {{ ps_output.stdout_lines | default([]) | length }}"
+          when: ps_output is defined
+
+        - name: "Validate ps command output"
+          ansible.builtin.assert:
+            that:
+              - ps_output is defined
+              - ps_output.stdout_lines is defined
+            fail_msg: "Failed to query process information. ps command may not be available."
+            success_msg: "Process information query successful"
+          ignore_errors: true
+
+      rescue:
+        - name: "Handle process query failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to query process information. Zombie process detection may be incomplete."
+          ignore_errors: true
+
+    # ========================================================================
+    # Task 2: Filter Zombie Processes
+    # ========================================================================
+    - name: "Task 2: Filter zombie processes"
+      block:
+        - name: "Extract zombie processes from ps output"
+          ansible.builtin.set_fact:
+            zombie_list: "{{ ps_output.stdout_lines | default([]) | select('search', ' Z ') | list }}"
+          when: ps_output is defined and ps_output.stdout_lines is defined
+
+        - name: "Initialize empty zombie list if ps_output is not available"
+          ansible.builtin.set_fact:
+            zombie_list: []
+          when: ps_output is not defined or ps_output.stdout_lines is not defined
+
+        - name: "Display zombie process count"
+          ansible.builtin.debug:
+            msg:
+              - "Zombie process detection completed"
+              - "Found {{ zombie_list | default([]) | length }} zombie process(es)"
+              - "{{ 'Zombie processes detected. Investigation will continue.' if (zombie_list | default([]) | length > 0) else 'No zombie processes found. System is healthy.' }}"
+          when: zombie_list is defined
+
+      rescue:
+        - name: "Handle zombie filtering failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to filter zombie processes. Setting zombie_list to empty."
+          ignore_errors: true
+        - name: "Set empty zombie list on error"
+          ansible.builtin.set_fact:
+            zombie_list: []
+
+    # ========================================================================
+    # Task 3: Report Findings Summary
+    # ========================================================================
+    - name: "Task 3: Report findings summary"
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Zombie Process Investigation Summary"
+          - "=========================================="
+          - "Host: {{ ansible_hostname }}"
+          - "Zombie Processes Found: {{ zombie_list | default([]) | length }}"
+          - "{{ 'Investigation will continue with detailed analysis.' if (zombie_list | default([]) | length > 0) else 'No further action required.' }}"
+          - "=========================================="
+      tags:
+        - report
+        - always
+
+    # ========================================================================
+    # Task 4: Detailed Parent Process (PPID) Information for Each Zombie
+    # ========================================================================
+    - name: "Task 4: Detailed parent process (PPID) information for each zombie"
+      block:
+        - name: "Collect detailed parent process information for each zombie"
+          ansible.builtin.shell: |
+            set -e
+            LINE="{{ item }}"
+            ZOMBIE_PID=$(echo "$LINE" | awk '{print $1}')
+            PARENT_PID=$(echo "$LINE" | awk '{print $2}')
+            PROCESS_STATE=$(echo "$LINE" | awk '{print $3}')
+            PROCESS_NAME=$(echo "$LINE" | awk '{for(i=4;i<=NF;i++) printf "%s ", $i; print ""}' | sed 's/[[:space:]]*$//')
+            
+            if [ -z "$PROCESS_NAME" ]; then
+              PROCESS_NAME="unknown"
+            fi
+            
+            echo "=========================================="
+            echo "Zombie Process Details:"
+            echo "  PID: $ZOMBIE_PID"
+            echo "  Parent PID: $PARENT_PID"
+            echo "  State: $PROCESS_STATE"
+            echo "  Process Name: $PROCESS_NAME"
+            echo "  Full Command: $LINE"
+            echo ""
+            echo "Parent Process Information:"
+            if ps -p "$PARENT_PID" > /dev/null 2>&1; then
+              ps -up "$PARENT_PID" || echo "Unable to retrieve parent process details"
+            else
+              echo "Parent process (PID: $PARENT_PID) no longer exists"
+            fi
+            echo "=========================================="
+          loop: "{{ zombie_list | default([]) }}"
+          register: zombie_report
+          changed_when: false
+          failed_when: false
+          when: zombie_list is defined and zombie_list | default([]) | length > 0
+
+        - name: "Display detailed investigation status"
+          ansible.builtin.debug:
+            msg:
+              - "Detailed parent process investigation completed"
+              - "Analyzed {{ zombie_report.results | default([]) | length }} zombie process(es)"
+          when:
+            - zombie_list is defined
+            - zombie_list | default([]) | length > 0
+            - zombie_report is defined
+
+        - name: "Display message when no zombies found"
+          ansible.builtin.debug:
+            msg: "No zombie processes detected. Skipping detailed investigation."
+          when: zombie_list is defined and zombie_list | default([]) | length == 0
+
+      rescue:
+        - name: "Handle detailed investigation failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to complete detailed parent process investigation for some zombie processes. Partial information may be available."
+          ignore_errors: true
+
+    # ========================================================================
+    # Task 5: Save Report to Local File
+    # ========================================================================
+    - name: "Task 5: Save report to local file"
+      block:
+        - name: "Prepare comprehensive investigation report"
+          ansible.builtin.set_fact:
+            investigation_report:
+              hostname: "{{ ansible_hostname }}"
+              os_distribution: "{{ ansible_distribution }}"
+              os_version: "{{ ansible_distribution_version }}"
+              investigation_timestamp: "{{ ansible_date_time.iso8601 }}"
+              zombie_count: "{{ zombie_list | default([]) | length }}"
+              zombie_processes: "{{ zombie_list | default([]) }}"
+              detailed_investigation: "{{ zombie_report.results | default([]) | map(attribute='stdout') | list if (zombie_report is defined and zombie_list | default([]) | length > 0) else [] }}"
+          when: zombie_list is defined
+
+        - name: "Save investigation report to JSON file"
+          ansible.builtin.copy:
+            content: "{{ investigation_report | to_nice_json }}"
+            dest: "{{ report_path }}"
+            mode: '0644'
+          when:
+            - zombie_list is defined
+            - investigation_report is defined
+            - report_path is defined
+
+        - name: "Display report file creation status"
+          ansible.builtin.debug:
+            msg:
+              - "Investigation report saved successfully"
+              - "Report location: {{ report_path }}"
+              - "Report format: JSON"
+          when:
+            - zombie_list is defined
+            - zombie_list | default([]) | length > 0
+            - report_path is defined
+
+        - name: "Create empty report file when no zombies found"
+          ansible.builtin.copy:
+            content: |
+              {
+                "hostname": "{{ ansible_hostname }}",
+                "os_distribution": "{{ ansible_distribution }}",
+                "os_version": "{{ ansible_distribution_version }}",
+                "investigation_timestamp": "{{ ansible_date_time.iso8601 }}",
+                "zombie_count": 0,
+                "zombie_processes": [],
+                "detailed_investigation": [],
+                "status": "No zombie processes detected. System is healthy."
+              }
+            dest: "{{ report_path }}"
+            mode: '0644'
+          when:
+            - zombie_list is defined
+            - zombie_list | default([]) | length == 0
+            - report_path is defined
+
+        - name: "Display report file creation status (no zombies)"
+          ansible.builtin.debug:
+            msg:
+              - "Investigation report saved successfully (no zombies found)"
+              - "Report location: {{ report_path }}"
+          when:
+            - zombie_list is defined
+            - zombie_list | default([]) | length == 0
+            - report_path is defined
+
+      rescue:
+        - name: "Handle report file creation failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to save investigation report to file. Investigation data may still be available in Ansible output."
+          ignore_errors: true
+
+    # ========================================================================
+    # Task 6: Fetch Report to Control Node
+    # ========================================================================
+    - name: "Task 6: Fetch report to control node"
+      block:
+        - name: "Ensure reports directory exists on control node"
+          ansible.builtin.file:
+            path: "{{ report_dest_path }}"
+            state: directory
+            mode: '0755'
+          delegate_to: localhost
+          run_once: true
+          ignore_errors: true
+
+        - name: "Fetch report file to control node"
+          ansible.builtin.fetch:
+            src: "{{ report_path }}"
+            dest: "{{ report_dest_path }}"
+            flat: yes
+          when: report_path is defined
+          ignore_errors: true
+
+        - name: "Display report fetch status"
+          ansible.builtin.debug:
+            msg:
+              - "Report fetch completed"
+              - "Report location on control node: {{ report_dest_path }}{{ report_path | basename }}"
+          when: report_path is defined
+
+      rescue:
+        - name: "Handle report fetch failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to fetch report to control node. Report is still available on target host at {{ report_path }}"
+          ignore_errors: true
+
+    # ========================================================================
+    # Final Report: Display Summary
+    # ========================================================================
+    - name: "Final report: Display summary"
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Zombie Process Investigation Summary"
+          - "=========================================="
+          - "Host: {{ ansible_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Zombie Processes Found: {{ zombie_list | default([]) | length }}"
+          - "Investigation Completed: Yes"
+          - "Report File: {{ report_path }}"
+          - "Report Location (Control Node): {{ report_dest_path }}{{ report_path | basename if report_path is defined else 'N/A' }}"
+          - "{{ 'Action Required: Review zombie processes and their parent processes for remediation.' if (zombie_list | default([]) | length > 0) else 'Status: System is healthy. No zombie processes detected.' }}"
+          - "=========================================="
+      tags:
+        - always
+

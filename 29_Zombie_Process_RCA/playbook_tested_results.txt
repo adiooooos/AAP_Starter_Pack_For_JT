@@ -1,0 +1,311 @@
+[root@aap25 29_Zombie_Process_RCA]# ansible-playbook zombie_process_rca_site.yml -i inventory
+[DEPRECATION WARNING]: [defaults]collections_paths option, does not fit var naming standard, use the singular form collections_path instead. This feature will be
+removed from ansible-core in version 2.19. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+
+PLAY [Play 1: Zombie Process Investigation and Reporting] **************************************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [ansible25.example.com]
+ok: [TEST-RHEL-8.9-1]
+
+TASK [Validate OS compatibility] ***************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 8"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 9"
+}
+
+TASK [Display OS information] ******************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "OS Distribution: RedHat",
+        "OS Version: 7.9",
+        "OS Major Version: 7",
+        "Hostname: test-rhel-7"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "OS Distribution: RedHat",
+        "OS Version: 8.7",
+        "OS Major Version: 8",
+        "Hostname: TEST-RHEL-8"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "OS Distribution: RedHat",
+        "OS Version: 9.4",
+        "OS Major Version: 9",
+        "Hostname: ansible25"
+    ]
+}
+
+TASK [Query all processes with state information] **********************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com]
+
+TASK [Display process query status] ************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Process query completed",
+        "Total processes scanned: 178"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Process query completed",
+        "Total processes scanned: 294"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Process query completed",
+        "Total processes scanned: 531"
+    ]
+}
+
+TASK [Validate ps command output] **************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "Process information query successful"
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "changed": false,
+    "msg": "Process information query successful"
+}
+ok: [ansible25.example.com] => {
+    "changed": false,
+    "msg": "Process information query successful"
+}
+
+TASK [Extract zombie processes from ps output] *************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com]
+
+TASK [Initialize empty zombie list if ps_output is not available] ******************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+skipping: [TEST-RHEL-8.9-1]
+skipping: [ansible25.example.com]
+
+TASK [Display zombie process count] ************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Zombie process detection completed",
+        "Found 1 zombie process(es)",
+        "Zombie processes detected. Investigation will continue."
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Zombie process detection completed",
+        "Found 0 zombie process(es)",
+        "No zombie processes found. System is healthy."
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Zombie process detection completed",
+        "Found 6 zombie process(es)",
+        "Zombie processes detected. Investigation will continue."
+    ]
+}
+
+TASK [Task 3: Report findings summary] *********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "==========================================",
+        "Zombie Process Investigation Summary",
+        "==========================================",
+        "Host: test-rhel-7",
+        "Zombie Processes Found: 1",
+        "Investigation will continue with detailed analysis.",
+        "=========================================="
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "==========================================",
+        "Zombie Process Investigation Summary",
+        "==========================================",
+        "Host: TEST-RHEL-8",
+        "Zombie Processes Found: 0",
+        "No further action required.",
+        "=========================================="
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "==========================================",
+        "Zombie Process Investigation Summary",
+        "==========================================",
+        "Host: ansible25",
+        "Zombie Processes Found: 6",
+        "Investigation will continue with detailed analysis.",
+        "=========================================="
+    ]
+}
+
+TASK [Collect detailed parent process information for each zombie] *****************************************************************************************************
+skipping: [TEST-RHEL-8.9-1]
+ok: [Test-RHEL-7.9-3] => (item= 6763  6762 Z pytho <defunct> [python3] <defunct>)
+ok: [ansible25.example.com] => (item=  52986   52945 Z awx-m <defunct> [awx-manage] <defunct>)
+ok: [ansible25.example.com] => (item=  53001   52945 Z awx-m <defunct> [awx-manage] <defunct>)
+ok: [ansible25.example.com] => (item=  53005   52945 Z awx-m <defunct> [awx-manage] <defunct>)
+ok: [ansible25.example.com] => (item=  53008   52945 Z awx-m <defunct> [awx-manage] <defunct>)
+ok: [ansible25.example.com] => (item=  63773   52945 Z awx-m <defunct> [awx-manage] <defunct>)
+ok: [ansible25.example.com] => (item=  63788   52945 Z awx-m <defunct> [awx-manage] <defunct>)
+
+TASK [Display detailed investigation status] ***************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Detailed parent process investigation completed",
+        "Analyzed 1 zombie process(es)"
+    ]
+}
+skipping: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Detailed parent process investigation completed",
+        "Analyzed 6 zombie process(es)"
+    ]
+}
+
+TASK [Display message when no zombies found] ***************************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": "No zombie processes detected. Skipping detailed investigation."
+}
+skipping: [ansible25.example.com]
+
+TASK [Prepare comprehensive investigation report] **********************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com]
+
+TASK [Save investigation report to JSON file] **************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+changed: [ansible25.example.com]
+changed: [TEST-RHEL-8.9-1]
+
+TASK [Display report file creation status] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Investigation report saved successfully",
+        "Report location: /tmp/zombie_investigation_test-rhel-7.json",
+        "Report format: JSON"
+    ]
+}
+skipping: [TEST-RHEL-8.9-1]
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Investigation report saved successfully",
+        "Report location: /tmp/zombie_investigation_ansible25.json",
+        "Report format: JSON"
+    ]
+}
+
+TASK [Create empty report file when no zombies found] ******************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+skipping: [ansible25.example.com]
+changed: [TEST-RHEL-8.9-1]
+
+TASK [Display report file creation status (no zombies)] ****************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Investigation report saved successfully (no zombies found)",
+        "Report location: /tmp/zombie_investigation_TEST-RHEL-8.json"
+    ]
+}
+skipping: [ansible25.example.com]
+
+TASK [Ensure reports directory exists on control node] *****************************************************************************************************************
+changed: [Test-RHEL-7.9-3 -> localhost]
+
+TASK [Fetch report file to control node] *******************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+changed: [ansible25.example.com]
+changed: [TEST-RHEL-8.9-1]
+
+TASK [Display report fetch status] *************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Report fetch completed",
+        "Report location on control node: ./reports/zombie_investigation_test-rhel-7.json"
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "Report fetch completed",
+        "Report location on control node: ./reports/zombie_investigation_TEST-RHEL-8.json"
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "Report fetch completed",
+        "Report location on control node: ./reports/zombie_investigation_ansible25.json"
+    ]
+}
+
+TASK [Final report: Display summary] ***********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "==========================================",
+        "Zombie Process Investigation Summary",
+        "==========================================",
+        "Host: test-rhel-7",
+        "OS: RedHat 7.9",
+        "Zombie Processes Found: 1",
+        "Investigation Completed: Yes",
+        "Report File: /tmp/zombie_investigation_test-rhel-7.json",
+        "Report Location (Control Node): ./reports/zombie_investigation_test-rhel-7.json",
+        "Action Required: Review zombie processes and their parent processes for remediation.",
+        "=========================================="
+    ]
+}
+ok: [TEST-RHEL-8.9-1] => {
+    "msg": [
+        "==========================================",
+        "Zombie Process Investigation Summary",
+        "==========================================",
+        "Host: TEST-RHEL-8",
+        "OS: RedHat 8.7",
+        "Zombie Processes Found: 0",
+        "Investigation Completed: Yes",
+        "Report File: /tmp/zombie_investigation_TEST-RHEL-8.json",
+        "Report Location (Control Node): ./reports/zombie_investigation_TEST-RHEL-8.json",
+        "Status: System is healthy. No zombie processes detected.",
+        "=========================================="
+    ]
+}
+ok: [ansible25.example.com] => {
+    "msg": [
+        "==========================================",
+        "Zombie Process Investigation Summary",
+        "==========================================",
+        "Host: ansible25",
+        "OS: RedHat 9.4",
+        "Zombie Processes Found: 6",
+        "Investigation Completed: Yes",
+        "Report File: /tmp/zombie_investigation_ansible25.json",
+        "Report Location (Control Node): ./reports/zombie_investigation_ansible25.json",
+        "Action Required: Review zombie processes and their parent processes for remediation.",
+        "=========================================="
+    ]
+}
+
+PLAY RECAP *************************************************************************************************************************************************************
+TEST-RHEL-8.9-1            : ok=17   changed=3    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+Test-RHEL-7.9-3            : ok=18   changed=3    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+ansible25.example.com      : ok=17   changed=2    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
