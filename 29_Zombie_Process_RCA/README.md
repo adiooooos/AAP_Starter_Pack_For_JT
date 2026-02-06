@@ -5,6 +5,11 @@
 This playbook automates zombie process investigation and root cause analysis on RHEL/CentOS systems. It identifies all zombie processes (Z state) in the system, analyzes their parent process relationships, and generates detailed investigation reports. The playbook is designed for production environments and focuses on investigation and reporting only—it does NOT perform aggressive kill operations, allowing administrators to make informed decisions about remediation.
 
 The playbook generates comprehensive JSON format reports that include zombie process details, parent process information, and investigation timestamps. Reports are automatically collected back to the control node for centralized analysis and monitoring.
+### screenshots
+<img width="2031" height="1244" alt="image" src="https://github.com/user-attachments/assets/7687348e-9313-4bff-a3cf-c45465903d26" />
+<img width="2536" height="875" alt="image" src="https://github.com/user-attachments/assets/631ca65c-c10d-423b-8e28-7c174c7de3e5" />
+
+
 
 ## Features
 
@@ -376,4 +381,5 @@ For issues or questions:
 ## Author
 
 GCG AAP SSA Team + v3.01 20260217
+
 
