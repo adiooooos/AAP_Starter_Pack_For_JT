@@ -1,0 +1,345 @@
+# ============================================================================
+# Playbook: Disk IO Pressure Root Cause Analysis and Reporting
+# ============================================================================
+#
+# Description:
+#   This playbook automates disk IO pressure investigation and root cause analysis
+#   on RHEL/CentOS systems. It performs the following tasks:
+#   1. Validates OS compatibility and prerequisites
+#   2. Checks for sysstat package (required for iostat and pidstat)
+#   3. Collects disk IO statistics using iostat
+#   4. Identifies top IO-consuming processes using pidstat
+#   5. Detects processes in Disk Sleep (D state - Uninterruptible Sleep)
+#   6. Generates comprehensive investigation reports
+#   7. Saves reports to local files for further analysis
+#
+#   This playbook is designed for production environments and focuses on
+#   investigation and reporting only. It does not modify system state or
+#   terminate processes, allowing administrators to make informed decisions
+#   about remediation.
+#
+# Author: GCG AAP SSA Team + v3.01 20260217
+#
+# License:
+#   📜 License Type: End User License Agreement (EULA)
+#   🔒 Authorization: Subscription-based License
+#
+# ============================================================================
+
+---
+# ============================================================================
+# Play 1: Disk IO Pressure Investigation and Reporting
+# ============================================================================
+- name: "Play 1: Disk IO Pressure Investigation and Reporting"
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    # --- Core Configuration Variables ---
+    # Report file path on target host
+    report_path: "/tmp/disk_io_investigation_{{ ansible_hostname }}.json"
+    
+    # Report collection destination on control node
+    report_dest_path: "./reports/"
+
+  tasks:
+    # ========================================================================
+    # OS Compatibility Validation
+    # ========================================================================
+    - name: "Validate OS compatibility"
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["RedHat", "CentOS"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS. Supported: RHEL/CentOS 7/8/9"
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags:
+        - validation
+        - always
+
+    - name: "Display OS information"
+      ansible.builtin.debug:
+        msg:
+          - "OS Distribution: {{ ansible_distribution }}"
+          - "OS Version: {{ ansible_distribution_version }}"
+          - "OS Major Version: {{ ansible_distribution_major_version }}"
+          - "Hostname: {{ ansible_hostname }}"
+      tags:
+        - validation
+        - debug
+
+    # ========================================================================
+    # Prerequisites Check: sysstat Package
+    # ========================================================================
+    - name: "Check if sysstat package is installed"
+      block:
+        - name: "Check sysstat package availability"
+          ansible.builtin.command: "which iostat"
+          register: iostat_check
+          changed_when: false
+          failed_when: false
+
+        - name: "Check pidstat command availability"
+          ansible.builtin.command: "which pidstat"
+          register: pidstat_check
+          changed_when: false
+          failed_when: false
+
+        - name: "Display sysstat availability status"
+          ansible.builtin.debug:
+            msg:
+              - "Prerequisites check completed"
+              - "iostat available: {{ 'Yes' if (iostat_check.rc == 0) else 'No (sysstat package may need installation)' }}"
+              - "pidstat available: {{ 'Yes' if (pidstat_check.rc == 0) else 'No (sysstat package may need installation)' }}"
+          when:
+            - iostat_check is defined
+            - pidstat_check is defined
+
+      rescue:
+        - name: "Handle prerequisites check failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to check sysstat package availability. IO statistics collection may be limited."
+          ignore_errors: true
+
+    # ========================================================================
+    # Task 1: Collect Disk IO Statistics using iostat
+    # ========================================================================
+    - name: "Task 1: Collect disk IO statistics using iostat"
+      block:
+        - name: "Collect current disk IO statistics (Requires sysstat)"
+          ansible.builtin.command: "iostat -xz 1 3"
+          register: iostat_result
+          changed_when: false
+          failed_when: false
+          when: iostat_check is defined and iostat_check.rc == 0
+
+        - name: "Display iostat collection status"
+          ansible.builtin.debug:
+            msg:
+              - "Disk IO statistics collection completed"
+              - "iostat command executed: {{ 'Success' if (iostat_result is defined and iostat_result.rc is defined and iostat_result.rc == 0) else 'Failed or skipped' }}"
+              - "{{ 'IO statistics available for analysis.' if (iostat_result is defined and iostat_result.rc is defined and iostat_result.rc == 0 and iostat_result.stdout is defined) else 'IO statistics not available. sysstat package may need installation.' }}"
+          when: iostat_result is defined
+
+        - name: "Set empty iostat result when command not available"
+          ansible.builtin.set_fact:
+            iostat_result:
+              stdout: ""
+              rc: 1
+          when: iostat_check is not defined or iostat_check.rc != 0
+
+      rescue:
+        - name: "Handle iostat collection failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to collect disk IO statistics. Investigation will continue with available data."
+          ignore_errors: true
+        - name: "Set empty iostat result on error"
+          ansible.builtin.set_fact:
+            iostat_result:
+              stdout: ""
+              rc: 1
+
+    # ========================================================================
+    # Task 2: Identify Top IO-Consuming Processes using pidstat
+    # ========================================================================
+    - name: "Task 2: Identify top IO-consuming processes using pidstat"
+      block:
+        - name: "Find top IO consuming processes (using pidstat)"
+          ansible.builtin.command: "pidstat -d 1 1"
+          register: pidstat_result
+          changed_when: false
+          failed_when: false
+          when: pidstat_check is defined and pidstat_check.rc == 0
+
+        - name: "Display pidstat collection status"
+          ansible.builtin.debug:
+            msg:
+              - "High IO process identification completed"
+              - "pidstat command executed: {{ 'Success' if (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0) else 'Failed or skipped' }}"
+              - "{{ 'High IO processes identified for analysis.' if (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0 and pidstat_result.stdout is defined) else 'High IO process data not available. sysstat package may need installation.' }}"
+          when: pidstat_result is defined
+
+        - name: "Set empty pidstat result when command not available"
+          ansible.builtin.set_fact:
+            pidstat_result:
+              stdout: ""
+              rc: 1
+          when: pidstat_check is not defined or pidstat_check.rc != 0
+
+      rescue:
+        - name: "Handle pidstat collection failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to identify high IO processes. Investigation will continue with available data."
+          ignore_errors: true
+        - name: "Set empty pidstat result on error"
+          ansible.builtin.set_fact:
+            pidstat_result:
+              stdout: ""
+              rc: 1
+
+    # ========================================================================
+    # Task 3: Check for Processes in Disk Sleep (D state)
+    # ========================================================================
+    - name: "Task 3: Check for processes in disk sleep (D state)"
+      block:
+        - name: "Check for processes in Disk Sleep (D state - Uninterruptible Sleep)"
+          ansible.builtin.shell: "ps aux | awk '$8 == \"D\" {print $0}'"
+          register: d_state_processes
+          changed_when: false
+          failed_when: false
+
+        - name: "Count processes in D state"
+          ansible.builtin.set_fact:
+            d_state_count: "{{ d_state_processes.stdout_lines | default([]) | length }}"
+          when: d_state_processes is defined
+
+        - name: "Display D state process detection status"
+          ansible.builtin.debug:
+            msg:
+              - "D state process detection completed"
+              - "Processes in D state (Uninterruptible Sleep): {{ d_state_count | default(0) | int }}"
+              - "{{ 'Processes in D state detected. This may indicate disk IO blocking.' if ((d_state_count | default(0) | int) > 0) else 'No processes in D state detected.' }}"
+          when: d_state_processes is defined
+
+      rescue:
+        - name: "Handle D state process detection failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to detect processes in D state. Investigation will continue with available data."
+          ignore_errors: true
+        - name: "Set empty D state result on error"
+          ansible.builtin.set_fact:
+            d_state_processes:
+              stdout: ""
+              stdout_lines: []
+            d_state_count: 0
+
+    # ========================================================================
+    # Task 4: Summary of IO Analysis
+    # ========================================================================
+    - name: "Task 4: Summary of IO analysis"
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Disk IO Pressure Investigation Summary"
+          - "=========================================="
+          - "Host: {{ ansible_hostname }}"
+          - "--- IO Statistics ---"
+          - "{{ iostat_result.stdout | default('iostat not available - sysstat package may need installation') }}"
+          - "--- High IO Processes ---"
+          - "{{ pidstat_result.stdout | default('pidstat not available - sysstat package may need installation') }}"
+          - "--- Processes in D State (Uninterruptible Sleep) ---"
+          - "Count: {{ d_state_count | default(0) | int }}"
+          - "{{ d_state_processes.stdout | default('None') }}"
+          - "=========================================="
+      tags:
+        - report
+        - always
+
+    # ========================================================================
+    # Task 5: Save Report to Local File
+    # ========================================================================
+    - name: "Task 5: Save report to local file"
+      block:
+        - name: "Prepare comprehensive investigation report"
+          ansible.builtin.set_fact:
+            investigation_report:
+              hostname: "{{ ansible_hostname }}"
+              os_distribution: "{{ ansible_distribution }}"
+              os_version: "{{ ansible_distribution_version }}"
+              investigation_timestamp: "{{ ansible_date_time.iso8601 }}"
+              sysstat_available: "{{ 'Yes' if (iostat_check is defined and iostat_check.rc == 0) else 'No' }}"
+              io_statistics:
+                available: "{{ 'Yes' if (iostat_result is defined and iostat_result.rc is defined and iostat_result.rc == 0) else 'No' }}"
+                data: "{{ iostat_result.stdout | default('') if (iostat_result is defined) else '' }}"
+              high_io_processes:
+                available: "{{ 'Yes' if (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0) else 'No' }}"
+                data: "{{ pidstat_result.stdout | default('') if (pidstat_result is defined) else '' }}"
+              d_state_processes:
+                count: "{{ d_state_count | default(0) | int }}"
+                data: "{{ d_state_processes.stdout | default('') if (d_state_processes is defined) else '' }}"
+                processes: "{{ d_state_processes.stdout_lines | default([]) if (d_state_processes is defined) else [] }}"
+              analysis_summary:
+                io_pressure_detected: "{{ 'Yes' if (((d_state_count | default(0) | int) > 0) or (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0 and pidstat_result.stdout is defined and pidstat_result.stdout | length > 0)) else 'No' }}"
+                recommendation: "{{ 'Review high IO processes and D state processes for potential disk IO bottlenecks.' if (((d_state_count | default(0) | int) > 0) or (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0 and pidstat_result.stdout is defined and pidstat_result.stdout | length > 0)) else 'No significant disk IO pressure detected based on available data.' }}"
+
+        - name: "Save investigation report to JSON file"
+          ansible.builtin.copy:
+            content: "{{ investigation_report | to_nice_json }}"
+            dest: "{{ report_path }}"
+            mode: '0644'
+          when: investigation_report is defined and report_path is defined
+
+        - name: "Display report file creation status"
+          ansible.builtin.debug:
+            msg:
+              - "Investigation report saved successfully"
+              - "Report location: {{ report_path }}"
+              - "Report format: JSON"
+          when: report_path is defined
+
+      rescue:
+        - name: "Handle report file creation failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to save investigation report to file. Investigation data may still be available in Ansible output."
+          ignore_errors: true
+
+    # ========================================================================
+    # Task 6: Fetch Report to Control Node
+    # ========================================================================
+    - name: "Task 6: Fetch report to control node"
+      block:
+        - name: "Ensure reports directory exists on control node"
+          ansible.builtin.file:
+            path: "{{ report_dest_path }}"
+            state: directory
+            mode: '0755'
+          delegate_to: localhost
+          run_once: true
+          ignore_errors: true
+
+        - name: "Fetch report file to control node"
+          ansible.builtin.fetch:
+            src: "{{ report_path }}"
+            dest: "{{ report_dest_path }}"
+            flat: yes
+          when: report_path is defined
+          ignore_errors: true
+
+        - name: "Display report fetch status"
+          ansible.builtin.debug:
+            msg:
+              - "Report fetch completed"
+              - "Report location on control node: {{ report_dest_path }}{{ report_path | basename }}"
+          when: report_path is defined
+
+      rescue:
+        - name: "Handle report fetch failure"
+          ansible.builtin.debug:
+            msg: "Warning: Failed to fetch report to control node. Report is still available on target host at {{ report_path }}"
+          ignore_errors: true
+
+    # ========================================================================
+    # Final Report: Display Summary
+    # ========================================================================
+    - name: "Final report: Display summary"
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Disk IO Pressure Investigation Summary"
+          - "=========================================="
+          - "Host: {{ ansible_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "sysstat Package Available: {{ 'Yes' if (iostat_check is defined and iostat_check.rc == 0) else 'No' }}"
+          - "IO Statistics Collected: {{ 'Yes' if (iostat_result is defined and iostat_result.rc is defined and iostat_result.rc == 0) else 'No' }}"
+          - "High IO Processes Identified: {{ 'Yes' if (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0) else 'No' }}"
+          - "Processes in D State: {{ d_state_count | default(0) | int }}"
+          - "IO Pressure Detected: {{ 'Yes' if (((d_state_count | default(0) | int) > 0) or (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0 and pidstat_result.stdout is defined and pidstat_result.stdout | length > 0)) else 'No' }}"
+          - "Investigation Completed: Yes"
+          - "Report File: {{ report_path }}"
+          - "Report Location (Control Node): {{ report_dest_path }}{{ report_path | basename if report_path is defined else 'N/A' }}"
+          - "{{ 'Action Required: Review high IO processes and D state processes for potential disk IO bottlenecks.' if (((d_state_count | default(0) | int) > 0) or (pidstat_result is defined and pidstat_result.rc is defined and pidstat_result.rc == 0 and pidstat_result.stdout is defined and pidstat_result.stdout | length > 0)) else 'Status: No significant disk IO pressure detected based on available data.' }}"
+          - "=========================================="
+      tags:
+        - always
+

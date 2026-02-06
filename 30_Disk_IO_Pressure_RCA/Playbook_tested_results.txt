@@ -1,0 +1,153 @@
+[root@aap25 30_Disk_IO_Pressure_RCA]# ansible-playbook disk_io_pressure_rca_site.yml -i inventory
+
+PLAY [Play 1: Disk IO Pressure Investigation and Reporting] ************************************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Validate OS compatibility] ***************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "changed": false,
+    "msg": "OS compatibility check passed: RedHat 7"
+}
+
+TASK [Display OS information] ******************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "OS Distribution: RedHat",
+        "OS Version: 7.9",
+        "OS Major Version: 7",
+        "Hostname: test-rhel-7"
+    ]
+}
+
+TASK [Check sysstat package availability] ******************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check pidstat command availability] ******************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Display sysstat availability status] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Prerequisites check completed",
+        "iostat available: No (sysstat package may need installation)",
+        "pidstat available: No (sysstat package may need installation)"
+    ]
+}
+
+TASK [Collect current disk IO statistics (Requires sysstat)] ***********************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Display iostat collection status] ********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Disk IO statistics collection completed",
+        "iostat command executed: Failed or skipped",
+        "IO statistics not available. sysstat package may need installation."
+    ]
+}
+
+TASK [Set empty iostat result when command not available] **************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Find top IO consuming processes (using pidstat)] *****************************************************************************************************************
+skipping: [Test-RHEL-7.9-3]
+
+TASK [Display pidstat collection status] *******************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "High IO process identification completed",
+        "pidstat command executed: Failed or skipped",
+        "High IO process data not available. sysstat package may need installation."
+    ]
+}
+
+TASK [Set empty pidstat result when command not available] *************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Check for processes in Disk Sleep (D state - Uninterruptible Sleep)] *********************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Count processes in D state] **************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Display D state process detection status] ************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "D state process detection completed",
+        "Processes in D state (Uninterruptible Sleep): 0",
+        "No processes in D state detected."
+    ]
+}
+
+TASK [Task 4: Summary of IO analysis] **********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "==========================================",
+        "Disk IO Pressure Investigation Summary",
+        "==========================================",
+        "Host: test-rhel-7",
+        "--- IO Statistics ---",
+        "",
+        "--- High IO Processes ---",
+        "",
+        "--- Processes in D State (Uninterruptible Sleep) ---",
+        "Count: 0",
+        "",
+        "=========================================="
+    ]
+}
+
+TASK [Prepare comprehensive investigation report] **********************************************************************************************************************
+ok: [Test-RHEL-7.9-3]
+
+TASK [Save investigation report to JSON file] **************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+
+TASK [Display report file creation status] *****************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Investigation report saved successfully",
+        "Report location: /tmp/disk_io_investigation_test-rhel-7.json",
+        "Report format: JSON"
+    ]
+}
+
+TASK [Ensure reports directory exists on control node] *****************************************************************************************************************
+ok: [Test-RHEL-7.9-3 -> localhost]
+
+TASK [Fetch report file to control node] *******************************************************************************************************************************
+changed: [Test-RHEL-7.9-3]
+
+TASK [Display report fetch status] *************************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "Report fetch completed",
+        "Report location on control node: ./reports/disk_io_investigation_test-rhel-7.json"
+    ]
+}
+
+TASK [Final report: Display summary] ***********************************************************************************************************************************
+ok: [Test-RHEL-7.9-3] => {
+    "msg": [
+        "==========================================",
+        "Disk IO Pressure Investigation Summary",
+        "==========================================",
+        "Host: test-rhel-7",
+        "OS: RedHat 7.9",
+        "sysstat Package Available: No",
+        "IO Statistics Collected: No",
+        "High IO Processes Identified: No",
+        "Processes in D State: 0",
+        "IO Pressure Detected: No",
+        "Investigation Completed: Yes",
+        "Report File: /tmp/disk_io_investigation_test-rhel-7.json",
+        "Report Location (Control Node): ./reports/disk_io_investigation_test-rhel-7.json",
+        "Status: No significant disk IO pressure detected based on available data.",
+        "=========================================="
+    ]
+}
+
+PLAY RECAP *************************************************************************************************************************************************************
+Test-RHEL-7.9-3            : ok=21   changed=2    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0
