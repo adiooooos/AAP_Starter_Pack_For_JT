@@ -44,7 +44,7 @@
 # repository files, and configuring the web/FTP service.
 - name: Setup the remote yum repo server
   become: yes
-  hosts: server
+  hosts: "{{ repo_server_group | default('server') }}"     //THIS VAR is set for  AAP
   gather_facts: true
 
   vars:
@@ -100,7 +100,7 @@
 # creating YUM repository configuration files.
 - name: Setup the remote yum repo client
   become: yes
-  hosts: client
+  hosts: "{{ repo_client_group | default('client') }}"    //THIS VAR is set for  AAP
   gather_facts: true
 
   vars:
