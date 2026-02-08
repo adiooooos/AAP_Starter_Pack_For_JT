@@ -15,7 +15,7 @@
 # ============================================================================
 ---
 - name: Deploy and configure BIND secondary DNS servers
-  hosts: secondary_dns
+  hosts:  "{{ survey_target_hosts | default('secondary_dns') }}"  
   become: true
   gather_facts: true
 
@@ -39,5 +39,6 @@
 
   roles:
     - role: bind_secondary_dns
+
 
 
