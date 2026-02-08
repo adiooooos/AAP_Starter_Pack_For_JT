@@ -10,7 +10,7 @@
 # ============================================================================
 
 - name: Deploy and configure NFS server
-  hosts: nfs_servers
+  hosts: "{{ target_nfs_server | default('nfs_servers') }}"
   become: true
 
   vars:
@@ -180,5 +180,6 @@
       ansible.builtin.service:
         name: nfs-server
         state: reloaded
+
 
 
