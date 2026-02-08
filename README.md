@@ -1,4 +1,4 @@
-
+<img width="1657" height="870" alt="image" src="https://github.com/user-attachments/assets/1ede5b1f-51db-4a38-8e0b-8b631ccbac90" />
 ## AAP Starter Package User Guide V3.0
 
 ---
@@ -390,92 +390,145 @@ After the configuration is complete, click **Launch Template** to test and wait 
 #### 3.3.6 Module Config: 06_Automated_Inspection_of_Linux
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1753" height="928" alt="image" src="https://github.com/user-attachments/assets/33617ad5-a05b-4981-a26f-c90a2cba3097" />
+
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1759" height="922" alt="image" src="https://github.com/user-attachments/assets/767c3bab-80a2-4f45-b908-a856c824d709" />
+<img width="1761" height="923" alt="image" src="https://github.com/user-attachments/assets/1d7653ca-d134-4f35-b2d5-39b1d001a577" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1753" height="930" alt="image" src="https://github.com/user-attachments/assets/8aa2d42f-f480-48bf-853e-4db86e38001d" />
+<img width="1738" height="906" alt="image" src="https://github.com/user-attachments/assets/ffb0e674-c345-4ff1-8cd5-1249734fa1f3" />
 
 The reports are also shown below:
+<img width="1746" height="931" alt="image" src="https://github.com/user-attachments/assets/88282270-cb35-4a4c-8f6d-05ea5b0b9899" />
 
 #### 3.3.7 Module Config: 07_Linux_FS_Auto_Check
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1750" height="922" alt="image" src="https://github.com/user-attachments/assets/a17bf799-28af-452a-8e4f-65160aa3612e" />
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1754" height="921" alt="image" src="https://github.com/user-attachments/assets/9728bea6-88d6-443c-91cf-e04cc910c477" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1748" height="923" alt="image" src="https://github.com/user-attachments/assets/6a97c480-bf0f-4a03-a2fb-53582b9d3624" />
+<img width="1750" height="919" alt="image" src="https://github.com/user-attachments/assets/cc689752-36de-4f9a-a0a5-7ff5e77d8a73" />
+<img width="1751" height="915" alt="image" src="https://github.com/user-attachments/assets/ac90d1a0-1284-4573-8f03-8f02fc0403de" />
 
 The final report is also shown below:
+<img width="1022" height="1182" alt="image" src="https://github.com/user-attachments/assets/1cad857d-a53e-4419-9663-e5430c42e9ca" />
 
 #### 3.3.8 Module Config: 08_Kernel_Log_Error_Check
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1656" height="875" alt="image" src="https://github.com/user-attachments/assets/3f65d6cc-73e0-446a-985a-16a1b5b8ccef" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1651" height="880" alt="image" src="https://github.com/user-attachments/assets/24bf64e1-a443-4656-aa4c-e0180002e1c7" />
 
-The rendering effect is shown in the following figure:
+The  effect is shown in the following figure:
+<img width="1232" height="722" alt="image" src="https://github.com/user-attachments/assets/ab06b18a-06da-4478-a1f7-8cbf50ed1881" />
 
 #### 3.3.9 Module Config: 09_NetworkManager_Auto_Manage
 
 You can configure the Job Template and execute it according to the screenshot below.
-
 Set the tag you want to set for the target server: view or add...
+<img width="1655" height="867" alt="image" src="https://github.com/user-attachments/assets/6d44b1c4-e509-487e-ae6a-9fad0d2c6528" />
+<img width="1659" height="888" alt="image" src="https://github.com/user-attachments/assets/8fb99c90-df68-4ba8-9718-314eeb5115b5" />
 
 **Note: Survey must be set to proceed.**
+<img width="1656" height="871" alt="image" src="https://github.com/user-attachments/assets/09df557f-f363-4997-83e4-dd4460708aba" />
+<img width="1661" height="871" alt="image" src="https://github.com/user-attachments/assets/c9f4231a-3163-4fb3-a92b-da9da4708927" />
+<img width="1656" height="874" alt="image" src="https://github.com/user-attachments/assets/40052fa0-c307-4a14-9a00-048d358a0e90" />
+<img width="1659" height="871" alt="image" src="https://github.com/user-attachments/assets/791afa71-c1c3-4eb4-8796-2472bbeb6577" />
+<img width="1662" height="880" alt="image" src="https://github.com/user-attachments/assets/dafd70ee-274e-41b7-b155-3700661b4b15" />
+<img width="1653" height="874" alt="image" src="https://github.com/user-attachments/assets/026dd73e-af9c-4b74-9815-4a37baf504e3" />
+<img width="1659" height="878" alt="image" src="https://github.com/user-attachments/assets/b69f1495-f166-4e87-ae2d-60b6f9d7705b" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1658" height="870" alt="image" src="https://github.com/user-attachments/assets/fe0e889d-1223-41ef-9f5d-da5e64f9ff66" />
+<img width="1658" height="991" alt="image" src="https://github.com/user-attachments/assets/6adc08f5-3d5d-478e-b4cc-8a8d98f796a9" />
 
 #### 3.3.10 Module Config: 10_dns_config
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1654" height="878" alt="image" src="https://github.com/user-attachments/assets/5ff71f81-50b5-4c4a-9de1-9caad99997c2" />
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1663" height="869" alt="image" src="https://github.com/user-attachments/assets/9d8c60bb-b9a6-4206-8c99-db15ae378d35" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1654" height="979" alt="image" src="https://github.com/user-attachments/assets/fa06123c-db10-4f3f-b503-32c9b66dee1c" />
 
 You may refer to the same configuration if you want to use `deploy_bind_secondary_site.yml` or `deploy_unbound_site.yml` in the Job Template.
 
 #### 3.3.11 Module Config: 11_dhcp_config
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1652" height="877" alt="image" src="https://github.com/user-attachments/assets/d738fc61-042b-4c48-897b-f09b9391a77b" />
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1665" height="872" alt="image" src="https://github.com/user-attachments/assets/52892eeb-e4f7-4865-81da-5ebe18ab95b8" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
 
 #### 3.3.12 Module Config: 12_maria_db_config
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1655" height="878" alt="image" src="https://github.com/user-attachments/assets/83f17105-23d3-4d9a-9774-5dbc0b8a8f1b" />
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1662" height="871" alt="image" src="https://github.com/user-attachments/assets/655fd23f-23e1-45df-ae24-6745aff7063a" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1658" height="879" alt="image" src="https://github.com/user-attachments/assets/284cd4ab-e811-4fa3-ab12-04d479daa0a2" />
 
 #### 3.3.13 Module Config: 13_NFS_server_config
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1657" height="870" alt="image" src="https://github.com/user-attachments/assets/20a8d8f5-ece0-4bac-b550-44d843d57881" />
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1660" height="873" alt="image" src="https://github.com/user-attachments/assets/a4301011-72c3-4332-9f5c-624ab71159e9" />
+<img width="1657" height="857" alt="image" src="https://github.com/user-attachments/assets/fd3949cd-3dc1-465d-8caa-a00d2cba8020" />
+<img width="1661" height="866" alt="image" src="https://github.com/user-attachments/assets/d77264a5-52c1-4fd2-86bb-b188b5902ed1" />
+<img width="1660" height="868" alt="image" src="https://github.com/user-attachments/assets/544cc61f-d1de-4972-8c0f-2bd0bf91844c" />
+<img width="1668" height="878" alt="image" src="https://github.com/user-attachments/assets/f8f7351f-cff4-45e7-92fd-48cfc05088fb" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1653" height="862" alt="image" src="https://github.com/user-attachments/assets/02cd948e-972f-46bf-8681-52b84bc89bc0" />
+<img width="1658" height="870" alt="image" src="https://github.com/user-attachments/assets/72c51dcd-71ee-4bae-a789-e688ea819dff" />
 
 #### 3.3.14 Module Config: 14_sshd_fix
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1651" height="873" alt="image" src="https://github.com/user-attachments/assets/854937ce-07b6-42b1-a918-89f4f2ad15db" />
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1653" height="865" alt="image" src="https://github.com/user-attachments/assets/9367c01d-f944-4358-8aba-03a698d21110" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1658" height="867" alt="image" src="https://github.com/user-attachments/assets/569eeab2-06da-4e79-bf19-f152985ab7c1" />
 
 #### 3.3.15 Module Config: 15_RHEL9_Standard_Config
 
 **Prerequisite setting** - Inventory for RHEL9 & Credentials for RHEL9
+<img width="1659" height="987" alt="image" src="https://github.com/user-attachments/assets/d885f78a-8ad3-493b-98f1-21e267cad0f4" />
+<img width="1646" height="868" alt="image" src="https://github.com/user-attachments/assets/2be5f55b-8526-4d25-81a0-b5036195061a" />
+<img width="1651" height="871" alt="image" src="https://github.com/user-attachments/assets/424232ea-6b9a-4662-8d65-5af0088cc66a" />
+<img width="1661" height="873" alt="image" src="https://github.com/user-attachments/assets/e87fdc79-860d-49c6-8221-3faf59d8066e" />
+<img width="1650" height="872" alt="image" src="https://github.com/user-attachments/assets/a00d42c9-81eb-4104-a21a-395bfac8a662" />
 
 In the UI interface of the AAP Server, the corresponding Job Template configuration is shown in the screenshot below. You can refer to it yourself:
+<img width="1661" height="869" alt="image" src="https://github.com/user-attachments/assets/10933232-20f3-4fe6-ab8f-322a5469cc56" />
 
 **Creating a Survey to adapt to your environment (customization)**
+<img width="1661" height="870" alt="image" src="https://github.com/user-attachments/assets/8899f255-0a89-457a-9c99-9d3ef5340ad8" />
 
 After the configuration is complete, click **Launch Template** to test and wait for the job to complete:
+<img width="1656" height="739" alt="image" src="https://github.com/user-attachments/assets/9831867b-d408-4f9a-ac85-717731ffdb20" />
 
 #### 3.3.16 Module Config: 16_Network_Fault_Diagnosis
 
