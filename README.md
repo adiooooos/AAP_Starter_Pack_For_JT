@@ -22,7 +22,7 @@
   - [3.2 Configure Projects for AAP (offline)](#32-configure-projects-for-aap-offline)
     - [3.2.1 Configure Project &#34;Starter_Pack_Offline&#34;](#321-configure-project-starter_pack_offline)
   - [3.3 Configuring Job Template for Starter Pack](#33-configuring-job-template-for-starter-pack)
-    - **Basic Modules (01-09)**
+    - **Linux Operation Modules (01-32)**
       - [3.3.1 Module Config: 01_OS_info_collection_and_report](#331-module-config-01_os_info_collection_and_report)
       - [3.3.2 Module Config: 02_DNS_unified_config](#332-module-config-02_dns_unified_config)
       - [3.3.3 Module Config: 03_Unified_SELinux_Configuration](#333-module-config-03_unified_selinux_configuration)
@@ -32,14 +32,12 @@
       - [3.3.7 Module Config: 07_Linux_FS_Auto_Check](#337-module-config-07_linux_fs_auto_check)
       - [3.3.8 Module Config: 08_Kernel_Log_Error_Check](#338-module-config-08_kernel_log_error_check)
       - [3.3.9 Module Config: 09_NetworkManager_Auto_Manage](#339-module-config-09_networkmanager_auto_manage)
-    - **SP2 Modules (10-15)**
       - [3.3.10 Module Config: 10_dns_config](#3310-module-config-10_dns_config)
       - [3.3.11 Module Config: 11_dhcp_config](#3311-module-config-11_dhcp_config)
       - [3.3.12 Module Config: 12_maria_db_config](#3312-module-config-12_maria_db_config)
       - [3.3.13 Module Config: 13_NFS_server_config](#3313-module-config-13_nfs_server_config)
       - [3.3.14 Module Config: 14_sshd_fix](#3314-module-config-14_sshd_fix)
       - [3.3.15 Module Config: 15_RHEL9_Standard_Config](#3315-module-config-15_rhel9_standard_config)
-    - **SP3 Modules (16-22)**
       - [3.3.16 Module Config: 16_Network_Fault_Diagnosis](#3316-module-config-16_network_fault_diagnosis)
       - [3.3.17 Module Config: 17_Httpd_Service_Fault_Auto_Analysis](#3317-module-config-17_httpd_service_fault_auto_analysis)
       - [3.3.18 Module Config: 18_Nginx_RCA](#3318-module-config-18_nginx_rca)
@@ -47,14 +45,12 @@
       - [3.3.20 Module Config: 20_Ftp_RCA](#3320-module-config-20_ftp_rca)
       - [3.3.21 Module Config: 21_MEM_HIGH_Util_RCA](#3321-module-config-21_mem_high_util_rca)
       - [3.3.22 Module Config: 22_MEM_OOM_RCA](#3322-module-config-22_mem_oom_rca)
-    - **SP4 Modules (23-28)**
       - [3.3.23 Module Config: 23_Postgresql_server_deploy](#3323-module-config-23_postgresql_server_deploy)
       - [3.3.24 Module Config: 24_os_PCP](#3324-module-config-24_os_pcp)
       - [3.3.25 Module Config: 25_vnc_config](#3325-module-config-25_vnc_config)
       - [3.3.26 Module Config: 26_kdump_config](#3326-module-config-26_kdump_config)
       - [3.3.27 Module Config: 27_cve_based_patching](#3327-module-config-27_cve_based_patching)
       - [3.3.28 Module Config: 28_xfs_check](#3328-module-config-28_xfs_check)
-    - **Advanced Diagnosis Modules (29-32)**
       - [3.3.29 Module Config: 29_Zombie_Process_RCA](#3329-module-config-29_zombie_process_rca)
       - [3.3.30 Module Config: 30_Disk_IO_Pressure_RCA](#3330-module-config-30_disk_io_pressure_rca)
       - [3.3.31 Module Config: 31_Systemd_Unit_Deep_Check](#3331-module-config-31_systemd_unit_deep_check)
