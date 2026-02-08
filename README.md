@@ -251,6 +251,15 @@ The relevant reference screenshot is shown as follows:
 Return to the **[Inventory]** page, click the Inventory we just created, enter the **[host]** page, check the managed machine we want to test, click **[run command]** to execute the test. If the test is successful, it proves that the target machine has been successfully managed.
 
 The reference screenshots are shown below:
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/527aabbd-9d84-4b06-bb53-bdf6d53d06cc" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/aa5fe01b-7743-4e2a-8a5c-df3f678a657e" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/e36569c2-c921-4246-9c36-e3844d185565" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/d6dee6b0-9424-43fb-8ea1-8ed887f26ecd" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/35574995-badb-490e-aa36-dc30b75e2cf2" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/9e3e9f5f-7370-4fa4-8d81-49cfe9132013" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/dd1804cd-56ec-4660-8919-476eb07fc17a" />
+
+
 
 You can also perform advanced operations for Inventory, such as setting up child groups, or using source plugins to synchronize dynamic CMDB. For more information, please refer to the Red Hat official documentation: [https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/)
 
