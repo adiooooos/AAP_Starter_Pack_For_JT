@@ -23,3 +23,5 @@
         name: networkmanager_cli
       # 关键修改 2：添加 tags，允许进入 role 内部
       tags: [view, add, modify, control, delete]
+
+### designed for AAP JT, updated in 20260208 by fycheung fzhang@redhat.com
