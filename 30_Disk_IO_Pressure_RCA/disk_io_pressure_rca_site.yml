@@ -31,7 +31,7 @@
 # Play 1: Disk IO Pressure Investigation and Reporting
 # ============================================================================
 - name: "Play 1: Disk IO Pressure Investigation and Reporting"
-  hosts: all
+  hosts: "{{ target_hosts | default('disk_io_investigation') }}"
   become: true
   gather_facts: true
 
@@ -342,4 +342,5 @@
           - "=========================================="
       tags:
         - always
+
 
