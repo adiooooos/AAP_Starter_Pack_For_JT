@@ -15,7 +15,7 @@
 # ============================================================================
 ---
 - name: Deploy and configure BIND primary DNS servers
-  hosts: primary_dns
+  hosts: "{{ survey_target_hosts | default('primary_dns') }}"    
   become: true
   gather_facts: true
 
@@ -39,5 +39,6 @@
 
   roles:
     - role: bind_primary_dns
+
 
 
