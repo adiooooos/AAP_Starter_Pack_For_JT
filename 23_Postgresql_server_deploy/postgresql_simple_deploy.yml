@@ -17,7 +17,7 @@
 
 ---
 - name: "Simple PostgreSQL Deployment"
-  hosts: postgres_servers
+  hosts: "{{ target_postgres_hosts | default('postgres_servers') }}"
   become: true
   gather_facts: true
 
@@ -187,4 +187,5 @@
           - "Port: {{ postgresql_port }}"
       tags:
         - verification
+
 
