@@ -22,7 +22,7 @@
 #   ansible-playbook network_diagnosis_site.yml -i inventory
 
 - name: RHEL Network Latency Diagnosis Automation
-  hosts: diagnose
+  hosts: "{{ target_diagnose_hosts | default('diagnose') }}"
   gather_facts: yes
   become: yes
   
@@ -110,4 +110,5 @@
           - "   • Address any identified issues based on recommendations"
           - "═══════════════════════════════════════════════════════════════"
       tags: always
+
 
