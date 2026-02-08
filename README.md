@@ -1,4 +1,4 @@
-# Red Hat Ansible Automation Platform
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/d9cca519-0c3e-4f67-a038-754590b23439" /># Red Hat Ansible Automation Platform
 
 ## AAP Starter Package User Guide V3.0
 
@@ -23,7 +23,7 @@
   - [3.2 Configure Projects for AAP (offline)](#32-configure-projects-for-aap-offline)
     - [3.2.1 Configure Project &#34;Starter_Pack_Offline&#34;](#321-configure-project-starter_pack_offline)
   - [3.3 Configuring Job Template for Starter Pack](#33-configuring-job-template-for-starter-pack)
-    - **Basic Configuration Modules (01-09)**
+    - **Basic Modules (01-09)**
       - [3.3.1 Module Config: 01_OS_info_collection_and_report](#331-module-config-01_os_info_collection_and_report)
       - [3.3.2 Module Config: 02_DNS_unified_config](#332-module-config-02_dns_unified_config)
       - [3.3.3 Module Config: 03_Unified_SELinux_Configuration](#333-module-config-03_unified_selinux_configuration)
@@ -72,7 +72,8 @@ Reference documentation: [Activate AAP](https://docs.redhat.com/en/documentation
 
 #### Access AAP UI for Configuration
 
-1. Enter `https://<AAP ServerFQDN>` in your browser and press Enter to access the UI interface
+1. Enter `https://<AAP ServerFQDN>` in your browser and press Enter to access the UI interface<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/82dac3fe-2010-44e2-a74f-913a22f4b3f4" />
+
 2. Enter the administrator username and password (redhat / the password we configured) to access the UI interface
 3. Enter your subscription username and credentials to activate the product
 
