@@ -1,7 +1,25 @@
 ---
 - name: Automated NetworkManager Management
-  hosts: all
+  hosts: "{{ survey_target_hosts | default('none') }}"
   become: true
 
-  roles:
-    - networkmanager_cli
+  tasks:
+    - name: Construct NM connection list from survey
+      ansible.builtin.set_fact:
+        nm_connections_to_add:
+          - name: "{{ srv_nm_name }}"
+            ifname: "{{ srv_nm_ifname }}"
+            type: "ethernet"
+            ip4: "{{ srv_nm_ip4 }}"
+            gw4: "{{ srv_nm_gw4 | default(omit) }}"
+            method: "manual"
+        nm_connections_to_activate: "{{ [srv_nm_name] if srv_nm_action | bool else [] }}"
+      when: srv_nm_name is defined and srv_nm_name != ""
+      # 关键修改 1：添加 tags，确保在使用 -t view 时该变量构造逻辑能运行
+      tags: [always]
+
+    - name: Execute NetworkManager CLI Role
+      ansible.builtin.include_role:
+        name: networkmanager_cli
+      # 关键修改 2：添加 tags，允许进入 role 内部
+      tags: [view, add, modify, control, delete]
