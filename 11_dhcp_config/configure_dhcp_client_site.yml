@@ -16,7 +16,7 @@
 # ============================================================================
 ---
 - name: Configure DHCP client
-  hosts: dhcp_clients
+  hosts: "{{ target_hosts | default('dhcp_clients') }}"
   become: true
   gather_facts: true
 
@@ -55,4 +55,5 @@
 
   roles:
     - rhel-system-roles.network
+
 
