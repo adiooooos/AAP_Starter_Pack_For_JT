@@ -71,14 +71,13 @@ Reference documentation: [Activate AAP](https://docs.redhat.com/en/documentation
 
 #### Access AAP UI for Configuration
 
-1. Enter `https://<AAP ServerFQDN>` in your browser and press Enter to access the UI interface<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/82dac3fe-2010-44e2-a74f-913a22f4b3f4" />
+1. Enter `https://<AAP ServerFQDN>` in your browser and press Enter to access the UI interface<img width="1551" height="815" alt="image" src="https://github.com/user-attachments/assets/476e7b2e-ad86-4bdb-9abb-93c08d3fa497" />
+
 
 2. Enter the administrator username and password (redhat / the password we configured) to access the UI interface
-3. Enter your subscription username and credentials to activate the product<img width="1016" height="581" alt="image" src="https://github.com/user-attachments/assets/5b859092-0ca5-41ac-be6a-d10cdff88fc9" />
-<img width="1016" height="367" alt="image" src="https://github.com/user-attachments/assets/c9371ca1-364f-4869-a4ea-e67f276cd06b" />
-<img width="1016" height="381" alt="image" src="https://github.com/user-attachments/assets/3890893f-3d57-405c-b85f-2be2517528e7" />
-<img width="1016" height="578" alt="image" src="https://github.com/user-attachments/assets/dda0ad3b-ab43-47c6-bcb4-f0a11c8e167b" />
-<img width="1016" height="577" alt="image" src="https://github.com/user-attachments/assets/362ddfa9-8fa6-42d1-b123-bcb07fa0d982" />
+3. Enter your subscription username and credentials to activate the product
+<img width="1560" height="882" alt="image" src="https://github.com/user-attachments/assets/3574aa12-bbef-48ea-bb0c-bf6563667c87" />
+<img width="1556" height="882" alt="image" src="https://github.com/user-attachments/assets/00936e30-1987-42fa-a6fc-2afc0e3a0926" />
 
 
 
@@ -202,7 +201,8 @@ We can find the inventory in the UI by navigating to **Automation Execution → 
 The specific steps and related reference screenshots are shown below:
 
 1. In the navigation panel, select **Automation Execution → Infrastructure → Inventories**. The Inventories view displays a list of currently available inventories
-2. Click **Create inventory** and select the type of inventory you want to create from the list menu<img width="1016" height="396" alt="image" src="https://github.com/user-attachments/assets/439b80a1-7fe0-46ae-8736-9e1f860af196" />
+2. Click **Create inventory** and select the type of inventory you want to create from the list menu
+<img width="1555" height="604" alt="image" src="https://github.com/user-attachments/assets/17492f65-599b-42cd-b2f2-496260e99e60" />
 
 3. Enter relevant information in the following fields:
    - **Name**: Enter the name of the inventory
@@ -210,10 +210,11 @@ The specific steps and related reference screenshots are shown below:
    - **Organization**: Select from the available organizations
    - **Instance Group**: Select the instance group or groups to run this inventory on. If the list is too long, use Search to narrow down the options. You can select multiple instance groups and sort them according to the order in which you want them to run
    - **(Optional) Tags**: Add tags that describe this inventory so they can be used to group and filter inventories and jobs
-     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/0ce03569-c831-45b1-b293-65e118bcda81" />
-     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/e446b531-6980-446e-a8dd-662931b56078" />
-     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/9feb7f4d-a91f-42f0-9637-4f539d1b85fa" />
-     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/382f3f06-850b-4620-afeb-2e01ce37dc53" />
+     <img width="1557" height="811" alt="image" src="https://github.com/user-attachments/assets/c950b084-5770-423a-bc2e-f439a4f7312c" />
+     <img width="1554" height="926" alt="image" src="https://github.com/user-attachments/assets/3d143151-89b3-4463-970d-c32575f10f7b" />
+     <img width="1550" height="816" alt="image" src="https://github.com/user-attachments/assets/a2a1d93e-dc75-4bd7-b217-5e5badd080cc" />
+     <img width="1554" height="838" alt="image" src="https://github.com/user-attachments/assets/42ba249b-81cf-4b7c-9ee8-f6c5b7760314" />
+     
 
   
 4. After adding Inventory, add specific managed machines to the **Hosts** page
@@ -221,11 +222,9 @@ The specific steps and related reference screenshots are shown below:
 The relevant reference screenshots are shown below:
 
 **Configure inventory groups for YUM scenario**
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/811290a0-1aef-48c4-bf21-99505e2968c9" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/f6cab233-0a50-4b52-92e0-9a65f572dd08" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/d674cebb-3b9b-4a77-98d8-b893dbed2f01" />
-
-
+<img width="1563" height="823" alt="image" src="https://github.com/user-attachments/assets/2f5acac4-32ce-42fd-90c6-414f352c808d" />
+<img width="1557" height="824" alt="image" src="https://github.com/user-attachments/assets/f5d02a5e-1384-4356-868d-156191dbd3fd" />
+<img width="1558" height="808" alt="image" src="https://github.com/user-attachments/assets/d59127a9-9d23-46b7-a05e-e9be7f4076db" />
 
 
 
@@ -245,19 +244,30 @@ The specific steps and related reference screenshots are shown below:
 Taking "rhel7" in Inventory as an example, create corresponding login credentials "credential for rhel7_inventory" for each host in the login form from AAP Server to rhel7_inventory.
 
 The relevant reference screenshot is shown as follows:
+<img width="1567" height="808" alt="image" src="https://github.com/user-attachments/assets/fa6f2dce-672d-498b-a20d-0c0342366bbf" />
+<img width="1556" height="818" alt="image" src="https://github.com/user-attachments/assets/433d42ed-b061-443d-adf6-dae4d03709b5" />
+
+
+
 
 ##### 2.1.1.5 Confirm target machine is successfully managed
 
 Return to the **[Inventory]** page, click the Inventory we just created, enter the **[host]** page, check the managed machine we want to test, click **[run command]** to execute the test. If the test is successful, it proves that the target machine has been successfully managed.
 
 The reference screenshots are shown below:
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/527aabbd-9d84-4b06-bb53-bdf6d53d06cc" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/aa5fe01b-7743-4e2a-8a5c-df3f678a657e" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/e36569c2-c921-4246-9c36-e3844d185565" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/d6dee6b0-9424-43fb-8ea1-8ed887f26ecd" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/35574995-badb-490e-aa36-dc30b75e2cf2" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/9e3e9f5f-7370-4fa4-8d81-49cfe9132013" />
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/dd1804cd-56ec-4660-8919-476eb07fc17a" />
+
+<img width="1552" height="822" alt="image" src="https://github.com/user-attachments/assets/71d8089e-3f81-4f2b-b9a8-dc47703ffa8d" />
+<img width="1558" height="817" alt="image" src="https://github.com/user-attachments/assets/5a4c023f-35e1-4f89-b536-7ec517604ac1" />
+<img width="1554" height="801" alt="image" src="https://github.com/user-attachments/assets/3982913e-5698-475d-b08a-6cc2bc5a42eb" />
+<img width="1576" height="812" alt="image" src="https://github.com/user-attachments/assets/b13f5af1-78f1-4dc8-a42e-56c397849edb" />
+<img width="1549" height="816" alt="image" src="https://github.com/user-attachments/assets/9aefe5b7-0ebe-4d62-8b6b-a16be6587187" />
+<img width="1558" height="815" alt="image" src="https://github.com/user-attachments/assets/f34cbe60-0238-4b67-ab7b-be7ffcef8875" />
+<img width="1562" height="816" alt="image" src="https://github.com/user-attachments/assets/75354e0a-2ed5-433c-ad1e-544f1d39a3ec" />
+
+
+
+
+
 
 
 
