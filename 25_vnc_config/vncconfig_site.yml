@@ -25,7 +25,7 @@
 # Play 1: Configure TigerVNC Server
 # ============================================================================
 - name: "Play 1: Configure TigerVNC Server"
-  hosts: vnc_servers
+  hosts: "{{ target_vnc_hosts | default('vnc_servers') }}"
   become: true
   gather_facts: true
 
@@ -444,4 +444,5 @@
           - "=========================================="
       tags:
         - always
+
 
