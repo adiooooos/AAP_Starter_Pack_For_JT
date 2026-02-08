@@ -26,7 +26,7 @@
 # Play 1: Configure Kdump Service
 # ============================================================================
 - name: "Play 1: Configure Kdump Service"
-  hosts: kdump_servers
+  hosts: "{{ target_kdump_hosts | default('kdump_servers') }}"
   become: true
   gather_facts: true
 
@@ -441,4 +441,5 @@
           - "=========================================="
       tags:
         - always
+
 
