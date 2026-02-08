@@ -26,7 +26,7 @@
 # Play 1: XFS Filesystem Health Inspection
 # ============================================================================
 - name: "Play 1: XFS Filesystem Health Inspection"
-  hosts: all
+  hosts: "{{ target_hosts | default('all') }}"
   become: true
   gather_facts: true
 
@@ -383,4 +383,5 @@
           - "=========================================="
       tags:
         - always
+
 
