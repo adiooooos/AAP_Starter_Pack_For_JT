@@ -28,7 +28,7 @@
 #   ansible-playbook httpd_diagnosis_site.yml -i inventory -e attempt_service_start=true
 
 - name: RHEL8/9 & CentOS8/9 Httpd Service Fault Diagnosis Automation
-  hosts: web
+  hosts: "{{ target_web_hosts | default('web') }}"
   gather_facts: yes
   become: yes
 
@@ -501,4 +501,5 @@
           - "   • Check service logs for detailed error information"
           - "═══════════════════════════════════════════════════════════════"
       tags: always
+
 
