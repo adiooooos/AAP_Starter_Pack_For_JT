@@ -28,7 +28,7 @@
 # Play 1: Zombie Process Investigation and Reporting
 # ============================================================================
 - name: "Play 1: Zombie Process Investigation and Reporting"
-  hosts: all
+  hosts: "{{ target_hosts | default('zombie_investigation') }}"
   become: true
   gather_facts: true
 
@@ -336,4 +336,5 @@
           - "=========================================="
       tags:
         - always
+
 
