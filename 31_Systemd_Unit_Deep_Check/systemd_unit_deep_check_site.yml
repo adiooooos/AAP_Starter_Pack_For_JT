@@ -29,7 +29,7 @@
 # Play 1: Systemd Unit Deep Check and Analysis
 # ============================================================================
 - name: "Play 1: Systemd Unit Deep Check and Analysis"
-  hosts: all
+  hosts: "{{ target_hosts | default('systemd_investigation') }}"
   become: true
   gather_facts: true
 
@@ -338,4 +338,5 @@
           - "=========================================="
       tags:
         - always
+
 
