@@ -1,4 +1,4 @@
-<img width="1657" height="870" alt="image" src="https://github.com/user-attachments/assets/1ede5b1f-51db-4a38-8e0b-8b631ccbac90" />
+
 ## AAP Starter Package User Guide V3.0
 
 ---
