@@ -270,10 +270,18 @@ You can also perform advanced operations for Inventory, such as setting up child
 ### 3.1 Download AAP Starter Package offline and configure
 
 #### 3.1.1 Download AAP Starter Package Offline Package
+<img width="181" height="56" alt="image" src="https://github.com/user-attachments/assets/d9209579-46fd-4eb0-a0f7-ed013919b6c2" />
+
 
 #### 3.1.2 Upload the Package to correct directory of AAP
+<img width="1749" height="917" alt="image" src="https://github.com/user-attachments/assets/9871a19e-d3db-4497-b28f-a5f80aa43a8d" />
+
 
 ### 3.2 Configure Projects for AAP (offline)
+<img width="1757" height="928" alt="image" src="https://github.com/user-attachments/assets/c61c277f-2d4e-4b22-948e-6aec16f53a0b" />
+<img width="1748" height="927" alt="image" src="https://github.com/user-attachments/assets/9f6add7c-bb7e-45c5-b49f-f6f0dfae67fd" />
+
+
 
 #### 3.2.1 Configure Project "Starter_Pack_Offline"
 
