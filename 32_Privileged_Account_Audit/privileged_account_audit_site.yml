@@ -30,7 +30,7 @@
 # Play 1: Privileged Account and Sudo Security Audit
 # ============================================================================
 - name: "Play 1: Privileged Account and Sudo Security Audit"
-  hosts: all
+  hosts: "{{ target_hosts | default('all') }}"
   become: true
   gather_facts: true
 
@@ -332,4 +332,5 @@
           - "=========================================="
       tags:
         - always
+
 
