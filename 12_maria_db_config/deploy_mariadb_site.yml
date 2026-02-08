@@ -16,7 +16,7 @@
 # ============================================================================
 ---
 - name: Deploy and configure MariaDB server
-  hosts: db_servers
+  hosts: "{{ target_db_hosts | default('db_servers') }}"
   become: true
   gather_facts: true
 
@@ -41,4 +41,5 @@
 
   roles:
     - role: mariadb_server
+
 
