@@ -22,7 +22,7 @@
 # Play 1: Install and Configure PCP on Target Hosts
 # ============================================================================
 - name: "Play 1: Install and Configure PCP"
-  hosts: pcp_servers
+  hosts: "{{ target_pcp_hosts | default('pcp_servers') }}"
   become: true
   gather_facts: true
 
@@ -326,4 +326,5 @@
 
           Please open this Markdown file to view the detailed report.
           =====================================================================
+
 
