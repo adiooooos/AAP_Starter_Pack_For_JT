@@ -2,6 +2,8 @@
 
 ## AAP Starter Package User Guide V3.0
 
+**所有截图请联系我 fzhang@redhat.com**
+
 ---
 
 ## 目录
