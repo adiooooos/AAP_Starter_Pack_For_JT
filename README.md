@@ -75,7 +75,16 @@ Reference documentation: [Activate AAP](https://docs.redhat.com/en/documentation
 1. Enter `https://<AAP ServerFQDN>` in your browser and press Enter to access the UI interface<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/82dac3fe-2010-44e2-a74f-913a22f4b3f4" />
 
 2. Enter the administrator username and password (redhat / the password we configured) to access the UI interface
-3. Enter your subscription username and credentials to activate the product
+3. Enter your subscription username and credentials to activate the product<img width="1016" height="581" alt="image" src="https://github.com/user-attachments/assets/5b859092-0ca5-41ac-be6a-d10cdff88fc9" />
+<img width="1016" height="367" alt="image" src="https://github.com/user-attachments/assets/c9371ca1-364f-4869-a4ea-e67f276cd06b" />
+<img width="1016" height="381" alt="image" src="https://github.com/user-attachments/assets/3890893f-3d57-405c-b85f-2be2517528e7" />
+<img width="1016" height="578" alt="image" src="https://github.com/user-attachments/assets/dda0ad3b-ab43-47c6-bcb4-f0a11c8e167b" />
+<img width="1016" height="577" alt="image" src="https://github.com/user-attachments/assets/362ddfa9-8fa6-42d1-b123-bcb07fa0d982" />
+
+
+
+
+
 
 **Note:**
 
