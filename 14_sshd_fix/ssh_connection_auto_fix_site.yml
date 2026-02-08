@@ -17,7 +17,7 @@
 # =============================================================================
 
 - name: SSH connection troubleshooting and auto‑remediation
-  hosts: ssh_fix_targets
+  hosts: "{{ target_ssh_hosts | default('ssh_fix_targets') }}"
   become: true
 
   vars:
@@ -442,5 +442,6 @@
             - Remediation summary: {{ report_dir }}/fix_summary.txt
             - Client guidance: {{ report_dir }}/client_fix_instructions.txt
             - Monitoring script: {{ report_dir }}/{{ monitor_script_name }}
+
 
 
