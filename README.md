@@ -1,4 +1,3 @@
-<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/d9cca519-0c3e-4f67-a038-754590b23439" /># Red Hat Ansible Automation Platform
 
 ## AAP Starter Package User Guide V3.0
 
@@ -203,18 +202,32 @@ We can find the inventory in the UI by navigating to **Automation Execution → 
 The specific steps and related reference screenshots are shown below:
 
 1. In the navigation panel, select **Automation Execution → Infrastructure → Inventories**. The Inventories view displays a list of currently available inventories
-2. Click **Create inventory** and select the type of inventory you want to create from the list menu
+2. Click **Create inventory** and select the type of inventory you want to create from the list menu<img width="1016" height="396" alt="image" src="https://github.com/user-attachments/assets/439b80a1-7fe0-46ae-8736-9e1f860af196" />
+
 3. Enter relevant information in the following fields:
    - **Name**: Enter the name of the inventory
    - **(Optional) Description**: Enter a description
    - **Organization**: Select from the available organizations
    - **Instance Group**: Select the instance group or groups to run this inventory on. If the list is too long, use Search to narrow down the options. You can select multiple instance groups and sort them according to the order in which you want them to run
    - **(Optional) Tags**: Add tags that describe this inventory so they can be used to group and filter inventories and jobs
+     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/0ce03569-c831-45b1-b293-65e118bcda81" />
+     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/e446b531-6980-446e-a8dd-662931b56078" />
+     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/9feb7f4d-a91f-42f0-9637-4f539d1b85fa" />
+     <img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/382f3f06-850b-4620-afeb-2e01ce37dc53" />
+
+  
 4. After adding Inventory, add specific managed machines to the **Hosts** page
 
 The relevant reference screenshots are shown below:
 
 **Configure inventory groups for YUM scenario**
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/811290a0-1aef-48c4-bf21-99505e2968c9" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/f6cab233-0a50-4b52-92e0-9a65f572dd08" />
+<img width="1016" height="534" alt="image" src="https://github.com/user-attachments/assets/d674cebb-3b9b-4a77-98d8-b893dbed2f01" />
+
+
+
+
 
 **Note:**
 
